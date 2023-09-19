@@ -25,9 +25,13 @@
 - [#8240](https://github.com/blockscout/blockscout/pull/8240) - Refactor and fix paging params in API v2
 - [#8242](https://github.com/blockscout/blockscout/pull/8242) - Fixing visualizer service CORS issue when running docker-compose
 - [#8355](https://github.com/blockscout/blockscout/pull/8355) - Fix current token balances redefining
+- [#8338](https://github.com/blockscout/blockscout/pull/8338) - Fix reorgs query
+- [#8413](https://github.com/blockscout/blockscout/pull/8413) - Put error in last call for STOP opcode
+- [#8447](https://github.com/blockscout/blockscout/pull/8447) - Fix reorg transactions
 
 ### Chore
 
+- [#8478](https://github.com/blockscout/blockscout/pull/8478) - Set integration with Blockscout's eth bytecode DB endpoint by default and other enhancements
 - [#8442](https://github.com/blockscout/blockscout/pull/8442) - Unify burn address definition
 - [#8321](https://github.com/blockscout/blockscout/pull/8321) - Add curl into resulting Docker image
 - [#8319](https://github.com/blockscout/blockscout/pull/8319) - Add MIX_ENV: 'prod' to docker-compose
