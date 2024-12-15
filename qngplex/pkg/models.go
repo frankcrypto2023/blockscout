@@ -54,6 +54,7 @@ type Tx struct {
 	FirstSeenHeight uint                         `json:"first_seen_height"`
 	TxAddressInfo   *TxAddressInfo               `json:"-"`
 	Links           map[string]map[string]string `json:"_links,omitempty"`
+	Confirms        uint
 }
 
 type TxAddressInfo struct {
@@ -193,6 +194,8 @@ func GetTx(rpool *redis.Pool, hash string) (tx *Tx, err error) {
 	}
 	prevOuts := strings.Split(txs[0].PreTxs, ",")
 	pos := make([]*TxIn, 0)
+	totalIn := 0
+	totalOut := uint32(0)
 	for _, po := range prevOuts {
 		arr := strings.Split(po, ":")
 		if len(arr) != 2 {
@@ -205,6 +208,7 @@ func GetTx(rpool *redis.Pool, hash string) (tx *Tx, err error) {
 				Vout: uint32(vout),
 			},
 		})
+		totalIn += 0
 	}
 	outs := make([]*TxOut, 0)
 	for _, out := range txs {
@@ -217,6 +221,7 @@ func GetTx(rpool *redis.Pool, hash string) (tx *Tx, err error) {
 			Index:  uint32(out.Vout),
 			TxHash: out.Txid,
 		})
+		totalOut += uint32(out.Amount)
 	}
 	tx = &Tx{
 		Hash:        hash,
@@ -224,6 +229,11 @@ func GetTx(rpool *redis.Pool, hash string) (tx *Tx, err error) {
 		BlockHash:   txs[0].Block,
 		TxIns:       pos,
 		TxOuts:      outs,
+		Confirms:    txs[0].Confirm,
+		TotalIn:     uint64(totalIn),
+		TotalOut:    uint64(totalOut),
+		TxInCnt:     uint32(len(pos)),
+		TxOutCnt:    uint32(len(outs)),
 	}
 	return
 }

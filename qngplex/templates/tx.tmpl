@@ -19,16 +19,15 @@
   <dt>Block Hash</dt>
   <dd class="hash"><a href="/block/{{.BlockHash}}">{{.BlockHash}}</a></dd>
 
-  <dt>Block Height</dt>
+  <dt>Block Order</dt>
   <dd><a href="/block/{{.BlockHash}}">{{.BlockHeight}}</a></dd>
 
   <dt>Block Time</dt>
   <dd>{{.BlockTime | formattime}} (<time datetime="{{.BlockTime | formatiso}}">{{.BlockTime | formattime}}</time>)</dd>
 
   <dt>Confirmations</dt>
-  {{$confirmation :=  confirmation .BlockHash .BlockHeight}}
-  {{if $confirmation}}
-  <dd>{{$confirmation}}</dd>
+  {{if .Confirms}}
+  <dd>{{.Confirms}}</dd>
   {{else}}
   <dd class="text-danger"><span class="glyphicon glyphicon-warning-sign"></span> <strong>Unconfirmed transaction</strong>
   {{end}}

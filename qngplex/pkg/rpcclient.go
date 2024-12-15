@@ -199,12 +199,12 @@ func SaveBlockFromOrderRPC(conf *Config, pool *redis.Pool, order uint, latestOrd
 		if i == 0 {
 			spendStatus = int(dbmodels.GetMatureStatus(uint(conf.NodeParams.CoinbaseMaturity), order, latestOrder))
 		}
-		HandleTx(conf, pool, tx, uint(spendStatus))
+		HandleTx(conf, pool, tx, uint(spendStatus), block.BlockOrder)
 	}
 	return err
 }
 
-func HandleTx(conf *Config, pool *redis.Pool, res qjson.TxRawResult, txSpendstatus uint) error {
+func HandleTx(conf *Config, pool *redis.Pool, res qjson.TxRawResult, txSpendstatus, blockOrder uint) error {
 	isCoinbase := uint(ConvertBoolToInt(res.Vin[0].Coinbase != ""))
 	preTxs := ""
 	inputAmount := uint64(0)
@@ -223,7 +223,7 @@ func HandleTx(conf *Config, pool *redis.Pool, res qjson.TxRawResult, txSpendstat
 					log.Printf("Err: %v, txid: %v not found", err, txin.Txid)
 					continue
 				}
-				HandleTx(conf, pool, txres, dbmodels.SpentStatusSpent)
+				HandleTx(conf, pool, txres, dbmodels.SpentStatusSpent, 0)
 				continue
 			}
 			prexTx.SpentStatus = dbmodels.SpentStatusSpent
@@ -242,7 +242,7 @@ func HandleTx(conf *Config, pool *redis.Pool, res qjson.TxRawResult, txSpendstat
 		tx.Txvalid = uint(ConvertBoolToInt(res.Txsvalid))
 		tx.SpentStatus = txSpendstatus
 		tx.Block = res.BlockHash
-		tx.BlockOrder = uint(res.BlockOrder)
+		tx.BlockOrder = blockOrder
 		tx.Confirm = uint(res.Confirmations)
 		if tx.Txid != "" { // exist
 			db.Save(&tx)

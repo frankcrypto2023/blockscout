@@ -15,7 +15,7 @@ func CatchUpLatestBlock(conf *Config, rpool *redis.Pool, spool *redis.Pool) (don
 		return true
 	}
 	log.Printf("Catch up block: %v\n", latestorder+1)
-	SaveBlockFromOrderRPC(conf, spool, uint(latestorder+1), uint(latestorder))
+	SaveBlockFromOrderRPC(conf, spool, uint(latestorder+1), uint(blockcount))
 	return false
 }
 
