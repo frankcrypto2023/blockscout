@@ -216,6 +216,48 @@ defmodule Indexer.Block.Fetcher do
     end
   end
 
+  @spec qng_fetch_and_import_range(t, Range.t()) ::
+          {:ok, %{inserted: %{}, errors: [EthereumJSONRPC.Transport.error()]}}
+          | {:error,
+             {step :: atom(), reason :: [Ecto.Changeset.t()] | term()}
+             | {step :: atom(), failed_value :: term(), changes_so_far :: term()}}
+  def qng_fetch_and_import_range(
+        %__MODULE__{
+          broadcast: _broadcast,
+          callback_module: callback_module,
+          json_rpc_named_arguments: json_rpc_named_arguments
+        } = state,
+        _.._ = range
+      )
+      when callback_module != nil do
+    {fetch_time, fetched_blocks} =
+      :timer.tc(fn -> EthereumJSONRPC.qng_fetch_blocks_by_range(range, json_rpc_named_arguments) end)
+
+    with {:blocks,
+          {:ok,
+           %Blocks{
+             blocks_params: blocks_params,
+             errors: blocks_errors
+           }}} <- {:blocks, fetched_blocks},
+         blocks = TransformBlocks.transform_blocks(blocks_params),
+        Logger.info("--------------------------Importing #{length(blocks)} blocks"),
+         {:ok, inserted} <-
+           __MODULE__.import(
+             state,
+             %{
+               utxoblocks: %{params: blocks},
+             }
+           ) do
+      Prometheus.Instrumenter.block_batch_fetch(fetch_time, callback_module)
+      result = {:ok, %{inserted: inserted, errors: blocks_errors}}
+      update_block_cache(inserted[:blocks])
+      result
+    else
+      {step, {:error, reason}} -> {:error, {step, reason}}
+      {:import, {:error, step, failed_value, changes_so_far}} -> {:error, {step, failed_value, changes_so_far}}
+    end
+  end
+
   defp update_block_cache([]), do: :ok
 
   defp update_block_cache(blocks) when is_list(blocks) do

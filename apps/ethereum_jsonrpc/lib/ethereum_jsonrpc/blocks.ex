@@ -3,8 +3,8 @@ defmodule EthereumJSONRPC.Blocks do
   Blocks format as returned by [`eth_getBlockByHash`](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbyhash)
   and [`eth_getBlockByNumber`](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbynumber) from batch requests.
   """
-
-  alias EthereumJSONRPC.{Block, Transactions, Transport, Uncles, Withdrawals}
+  require Logger
+  alias EthereumJSONRPC.{Block,UTXOBlock, Transactions, Transport, Uncles, Withdrawals}
 
   @type elixir :: [Block.elixir()]
   @type params :: [Block.params()]
@@ -61,6 +61,36 @@ defmodule EthereumJSONRPC.Blocks do
       block_second_degree_relations_params: block_second_degree_relations_params,
       transactions_params: transactions_params,
       withdrawals_params: withdrawals_params
+    }
+  end
+
+  @spec utxo_from_responses(list(), map()) :: t()
+  def utxo_from_responses(responses, id_to_params) when is_list(responses) and is_map(id_to_params) do
+    %{errors: errors, blocks: blocks} =
+      responses
+      |> EthereumJSONRPC.sanitize_responses(id_to_params)
+      |> Enum.map(&UTXOBlock.from_response(&1, id_to_params))
+      |> Enum.reduce(%{errors: [], blocks: []}, fn
+        {:ok, block}, %{blocks: blocks} = acc ->
+          %{acc | blocks: [block | blocks]}
+
+        {:error, error}, %{errors: errors} = acc ->
+          %{acc | errors: [error | errors]}
+      end)
+
+    elixir_blocks = utxo_to_elixir(blocks)
+
+    # elixir_transactions = elixir_to_transactions(elixir_blocks)
+    # elixir_withdrawals = elixir_to_withdrawals(elixir_blocks)
+
+    # block_second_degree_relations_params = Uncles.elixir_to_params(elixir_uncles)
+    # transactions_params = Transactions.elixir_to_params(elixir_transactions)
+    # withdrawals_params = Withdrawals.elixir_to_params(elixir_withdrawals)
+    blocks_params = utxo_elixir_to_params(elixir_blocks)
+
+    %__MODULE__{
+      errors: errors,
+      blocks_params: blocks_params
     }
   end
 
@@ -127,6 +157,10 @@ defmodule EthereumJSONRPC.Blocks do
     Enum.map(elixir, &Block.elixir_to_params/1)
   end
 
+  @spec utxo_elixir_to_params(elixir) :: params()
+  def utxo_elixir_to_params(elixir) when is_list(elixir) do
+    elixir
+  end
   @doc """
   Extracts the `t:EthereumJSONRPC.Transactions.elixir/0` from the `t:elixir/0`.
 
@@ -443,5 +477,10 @@ defmodule EthereumJSONRPC.Blocks do
   @spec to_elixir([Block.t()]) :: elixir
   def to_elixir(blocks) when is_list(blocks) do
     Enum.map(blocks, &Block.to_elixir/1)
+  end
+
+  @spec utxo_to_elixir([Block.t()]) :: elixir
+  def utxo_to_elixir(blocks) when is_list(blocks) do
+    Enum.map(blocks, &UTXOBlock.to_elixir/1)
   end
 end

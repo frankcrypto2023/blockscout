@@ -191,7 +191,7 @@ defmodule Indexer.Block.Catchup.Fetcher do
        ) do
     Logger.metadata(fetcher: :block_catchup, first_block_number: first, last_block_number: last)
     Process.flag(:trap_exit, true)
-
+    Logger.info(fn -> "Fetching range #{inspect(range)}" end, fetcher: :block_catchup)
     {fetch_duration, result} = :timer.tc(fn -> fetch_and_import_range(block_fetcher, range) end)
 
     Prometheus.Instrumenter.block_full_process(fetch_duration, __MODULE__)

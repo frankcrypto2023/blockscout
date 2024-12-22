@@ -21,7 +21,8 @@ defmodule Indexer.Block.Realtime.Fetcher do
       async_import_token_balances: 1,
       async_import_token_instances: 1,
       async_import_uncles: 1,
-      fetch_and_import_range: 2
+      fetch_and_import_range: 2,
+      qng_fetch_and_import_range: 2
     ]
 
   alias Ecto.Changeset
@@ -49,6 +50,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
   defstruct block_fetcher: nil,
             subscription: nil,
             previous_number: nil,
+            utxo_previous_number: nil,
             timer: nil
 
   @type t :: %__MODULE__{
@@ -61,6 +63,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
           },
           subscription: Subscription.t(),
           previous_number: pos_integer() | nil,
+          utxo_previous_number: pos_integer() | nil,
           timer: reference()
         }
 
@@ -89,6 +92,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
           block_fetcher: %Block.Fetcher{} = block_fetcher,
           subscription: %Subscription{} = subscription,
           previous_number: previous_number,
+          utxo_previous_number: utxo_previous_number,
           timer: timer
         } = state
       )
@@ -113,13 +117,20 @@ defmodule Indexer.Block.Realtime.Fetcher do
          timer: new_timer
      }}
   end
+  def subtract_from_number(number, subtrahend) when is_number(number) and is_number(subtrahend) do
+    number - subtrahend
+  end
 
+  def subtract_from_number(_, _) do
+    {:error, "Both arguments must be numbers"}
+  end
   @impl GenServer
   def handle_info(
         :poll_latest_block_number,
         %__MODULE__{
           block_fetcher: %Block.Fetcher{json_rpc_named_arguments: json_rpc_named_arguments} = block_fetcher,
-          previous_number: previous_number
+          previous_number: previous_number,
+          utxo_previous_number: utxo_previous_number
         } = state
       ) do
     new_previous_number =
@@ -135,7 +146,24 @@ defmodule Indexer.Block.Realtime.Fetcher do
           end
 
         _ ->
-          previous_number
+            previous_number
+      end
+      new_utxo_previous_number =
+        case EthereumJSONRPC.qng_fetch_latest_block_number(json_rpc_named_arguments) do
+          {:ok, number} when is_nil(utxo_previous_number) or number != utxo_previous_number ->
+            if abnormal_gap?(number, utxo_previous_number) do
+              number = subtract_from_number(number, 1)
+              qng_new_number = max(number, utxo_previous_number)
+              qng_start_fetch_and_import(qng_new_number, block_fetcher, utxo_previous_number)
+              qng_new_number
+            else
+              number = subtract_from_number(number, 1)
+              qng_start_fetch_and_import(number, block_fetcher, utxo_previous_number)
+              number
+            end
+        _ ->
+          utxo_previous_number
+
       end
 
     timer = schedule_polling()
@@ -144,6 +172,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
      %{
        state
        | previous_number: new_previous_number,
+        utxo_previous_number: new_utxo_previous_number,
          timer: timer
      }}
   end
@@ -251,6 +280,16 @@ defmodule Indexer.Block.Realtime.Fetcher do
     end
   end
 
+  def qng_start_fetch_and_import(number, block_fetcher, previous_number) do
+    start_at = determine_start_at(number, previous_number)
+    is_reorg = reorg?(number, previous_number)
+
+    for block_number_to_fetch <- start_at..number do
+      args = [block_number_to_fetch, block_fetcher, is_reorg]
+      Task.Supervisor.start_child(TaskSupervisor, __MODULE__, :qng_fetch_and_import_block, args, shutdown: @shutdown_after)
+    end
+  end
+
   defp determine_start_at(number, nil), do: number
 
   defp determine_start_at(number, previous_number) do
@@ -293,6 +332,25 @@ defmodule Indexer.Block.Realtime.Fetcher do
         end
 
         do_fetch_and_import_block(block_number_to_fetch, block_fetcher, retry)
+      end,
+      fetcher: :block_realtime,
+      block_number: block_number_to_fetch
+    )
+  end
+
+  @decorate trace(name: "fetch", resource: "Indexer.Block.Realtime.Fetcher.qng_fetch_and_import_block/3", tracer: Tracer)
+  def qng_fetch_and_import_block(block_number_to_fetch, block_fetcher, reorg?, retry \\ 3) do
+    Process.flag(:trap_exit, true)
+
+    Indexer.Logger.metadata(
+      fn ->
+        if reorg? do
+          # give previous fetch attempt (for same block number) a chance to finish
+          # before fetching again, to reduce block consensus mistakes
+          :timer.sleep(@reorg_delay)
+        end
+
+        qng_do_fetch_and_import_block(block_number_to_fetch, block_fetcher, retry)
       end,
       fetcher: :block_realtime,
       block_number: block_number_to_fetch
@@ -376,6 +434,17 @@ defmodule Indexer.Block.Realtime.Fetcher do
           step: step
         )
     end
+  end
+
+  @decorate span(tracer: Tracer)
+  defp qng_do_fetch_and_import_block(block_number_to_fetch, block_fetcher, retry) do
+    time_before = Timex.now()
+
+    {fetch_duration, result} =
+      :timer.tc(fn -> qng_fetch_and_import_range(block_fetcher, block_number_to_fetch..block_number_to_fetch) end)
+
+    Prometheus.Instrumenter.block_full_process(fetch_duration, __MODULE__)
+    # Logger.debug("record Fetched Failed and retry.")
   end
 
   defp log_import_timings(%{blocks: [%{number: number, timestamp: timestamp}]}, fetch_duration, time_before) do

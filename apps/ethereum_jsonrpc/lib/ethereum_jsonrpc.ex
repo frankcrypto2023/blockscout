@@ -29,6 +29,8 @@ defmodule EthereumJSONRPC do
 
   alias EthereumJSONRPC.{
     Block,
+    UTXOBlocks,
+    UTXOBlock,
     Blocks,
     Contract,
     FetchedBalances,
@@ -265,6 +267,16 @@ defmodule EthereumJSONRPC do
   end
 
   @doc """
+  Fetches qng blocks by block number range.
+  """
+  @spec qng_fetch_blocks_by_range(Range.t(), json_rpc_named_arguments) :: {:ok, Blocks.t()} | {:error, reason :: term}
+  def qng_fetch_blocks_by_range(_first.._last = range, json_rpc_named_arguments) do
+    range
+    |> Enum.map(fn number -> %{number: number} end)
+    |> qng_fetch_blocks_by_params(&UTXOBlock.ByNumber.request/1, json_rpc_named_arguments)
+  end
+
+  @doc """
   Fetches blocks by block number list.
   """
   @spec fetch_blocks_by_numbers([block_number()], json_rpc_named_arguments) ::
@@ -283,6 +295,12 @@ defmodule EthereumJSONRPC do
   def fetch_block_by_tag(tag, json_rpc_named_arguments) when tag in ~w(earliest latest pending) do
     [%{tag: tag}]
     |> fetch_blocks_by_params(&Block.ByTag.request/1, json_rpc_named_arguments)
+  end
+
+  @spec qng_fetch_block_latest_order(json_rpc_named_arguments) ::
+          {:ok, Blocks.t()}
+  def qng_fetch_block_latest_order(json_rpc_named_arguments) do
+    UTXOBlock.BlockCount.request(json_rpc_named_arguments)
   end
 
   @doc """
@@ -323,6 +341,12 @@ defmodule EthereumJSONRPC do
     tag
     |> fetch_block_by_tag(json_rpc_named_arguments)
     |> Block.ByTag.number_from_result()
+  end
+
+  @spec qng_fetch_latest_block_number(json_rpc_named_arguments) ::
+          {:ok, non_neg_integer()} | {:error, reason :: :invalid_tag | :not_found | term()}
+  def qng_fetch_latest_block_number(json_rpc_named_arguments) do
+    qng_fetch_block_latest_order(json_rpc_named_arguments)
   end
 
   @doc """
@@ -557,6 +581,18 @@ defmodule EthereumJSONRPC do
            |> Blocks.requests(request)
            |> json_rpc(json_rpc_named_arguments) do
       {:ok, Blocks.from_responses(responses, id_to_params)}
+    end
+  end
+
+   defp qng_fetch_blocks_by_params(params, request, json_rpc_named_arguments)
+       when is_list(params) and is_function(request, 1) do
+    id_to_params = id_to_params(params)
+
+    with {:ok, responses} <-
+           id_to_params
+           |> Blocks.requests(request)
+           |> json_rpc(json_rpc_named_arguments) do
+      {:ok, Blocks.utxo_from_responses(responses, id_to_params)}
     end
   end
 
