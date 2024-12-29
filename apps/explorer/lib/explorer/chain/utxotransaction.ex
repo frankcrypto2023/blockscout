@@ -4,9 +4,9 @@ defmodule Explorer.Chain.UTXOTransaction do
   use Explorer.Schema
 
   require Logger
-
+  alias Explorer.Repo
   import Ecto.Query, only: [from: 2, preload: 3, subquery: 1, where: 3]
-
+  import Explorer.Chain.UTXOAddress, only: [utxoaddress_update: 2]
   alias Ecto.Changeset
 
   alias Explorer.Chain.{
@@ -15,9 +15,9 @@ defmodule Explorer.Chain.UTXOTransaction do
     Transaction
   }
 
-  @optional_attrs ~w(block_hash block_number status)a
+  @optional_attrs ~w(block_hash blockorder txindex locktime spenttxhash txtime status fee)a
 
-  @required_attrs ~w(hash)a
+  @required_attrs ~w(hash index size toaddress amount vin pkscript)a
 
   @typedoc """
   The index of the transaction in its block.
@@ -45,22 +45,41 @@ defmodule Explorer.Chain.UTXOTransaction do
   @type wei_per_gas :: Wei.t()
 
   @type t :: %__MODULE__{
-          block_hash: Hash.t() | nil,
-          block_number: Block.block_number() | nil,
+          block_hash: String.t() | nil,
+          blockorder: Block.blockorder() | nil,
           size: non_neg_integer(),
-          hash: Hash.t(),
-          status: non_neg_integer(),
-          locketime: NaiveDateTime.t() | nil,
+          txindex: non_neg_integer(),
+          index: non_neg_integer(),
+          hash: String.t(),
+          locktime: non_neg_integer() | nil,
+          toaddress: String.t(),
+          amount: Decimal.t(),
+          fee: Decimal.t(),
+          spenttxhash: String.t() | nil,
+          txtime: DateTime.t(),
+          vin: String.t(),
+          pkscript: String.t(),
+          status: non_neg_integer()
         }
 
-  @primary_key {:hash, Hash.Full, autogenerate: false}
+  @primary_key false
+  @unique_index [:hash, :index]
   schema "utxotransactions" do
-    field(:block_number, :integer)
+    field(:block_hash, :string)
+    field(:blockorder, :integer)
     field(:size, :integer)
+    field(:txindex, :integer)
     field(:index, :integer)
+    field(:hash, :string)
+    field(:locktime, :integer)
+    field(:toaddress, :string)
+    field(:amount, :decimal)
+    field(:fee, :decimal)
+    field(:spenttxhash, :string)
+    field(:txtime, :utc_datetime_usec)
+    field(:vin, :string)
+    field(:pkscript, :string)
     field(:status, :integer)
-    field(:locketime, :integer)
-    field(:block_hash, Hash.Full)
 
     timestamps()
   end
@@ -71,55 +90,53 @@ defmodule Explorer.Chain.UTXOTransaction do
     transaction
     |> cast(attrs, attrs_to_cast)
     |> validate_required(@required_attrs)
-    |> validate_error()
-    |> validate_status()
-    |> check_error()
-    |> check_status()
-    |> foreign_key_constraint(:block_hash)
-    |> unique_constraint(:hash)
   end
 
   def not_pending_transactions(query) do
-    where(query, [t], not is_nil(t.block_number))
+    where(query, [t], not is_nil(t.blockorder))
+  end
+  def insert_tx(%{"hash": hash} = attrs) do
+    utxoaddress_update(attrs.toaddress, attrs.amount)
+    %__MODULE__{}
+    |> changeset(attrs)
+    |> Repo.insert!()
+
+  end
+
+  def insert_tx(%{:error => err}) do
+    {:error, err}
   end
 
   @error_message "can't be set when status is not :error"
 
-  defp check_error(%Changeset{} = changeset) do
-    check_constraint(changeset, :error, message: @error_message, name: :error)
-  end
-
-  @status_message "can't be set when the block_hash is unknown"
-
-  defp check_status(%Changeset{} = changeset) do
-    check_constraint(changeset, :status, message: @status_message, name: :status)
-  end
-
-  defp validate_error(%Changeset{} = changeset) do
-    if Changeset.get_field(changeset, :status) != :error and Changeset.get_field(changeset, :error) != nil do
-      Changeset.add_error(changeset, :error, @error_message)
-    else
-      changeset
-    end
-  end
-
-  defp validate_status(%Changeset{} = changeset) do
-    if Changeset.get_field(changeset, :block_hash) == nil and
-         Changeset.get_field(changeset, :status) != nil do
-      Changeset.add_error(changeset, :status, @status_message)
-    else
-      changeset
-    end
-  end
-
   @doc """
-  Builds an `Ecto.Query` to fetch transactions with the specified block_number
+  Builds an `Ecto.Query` to fetch transactions with the specified blockorder
   """
-  def transactions_with_block_number(block_number) do
+  def transactions_with_blockorder(blockorder) do
     from(
       t in Transaction,
-      where: t.block_number == ^block_number
+      where: t.blockorder == ^blockorder
     )
   end
 
+  def utxotx_update_status(hash, index, spenttxhash) do
+    tx = Repo.one(from u in __MODULE__, where: u.hash == ^hash and u.index == ^index)
+    IO.inspect(tx)
+    case tx do
+      nil ->
+        {:error, "tx not found"}
+
+      tx ->
+        changeset = Ecto.Changeset.change(tx, spenttxhash: spenttxhash, status: 1)
+
+        case Repo.update(changeset) do
+          {:ok, updated_tx} ->
+            utxoaddress_update(tx.toaddress, -tx.amount)
+            {:ok, updated_tx}
+
+          {:error, changeset} ->
+            {:error, changeset.errors}
+        end
+    end
+  end
 end

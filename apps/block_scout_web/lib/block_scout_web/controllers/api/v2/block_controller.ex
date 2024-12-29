@@ -52,12 +52,35 @@ defmodule BlockScoutWeb.API.V2.BlockController do
     end
   end
 
+  def utxoblock(conn, %{"block_hash_or_number" => block_hash_or_number}) do
+    with {:ok, type, value} <- parse_block_hash_or_number_param(block_hash_or_number),
+         {:ok, block} <- fetch_utxoblock(type, value, @block_params) do
+      conn
+      |> put_status(200)
+      |> render(:utxoblock, %{block: block})
+    end
+  end
+
   defp fetch_block(:hash, hash, params) do
     Chain.hash_to_block(hash, params)
   end
 
   defp fetch_block(:number, number, params) do
     case Chain.number_to_block(number, params) do
+      {:ok, _block} = ok_response ->
+        ok_response
+
+      _ ->
+        {:lost_consensus, Chain.nonconsensus_block_by_number(number, @api_true)}
+    end
+  end
+
+  defp fetch_utxoblock(:hash, hash, params) do
+    Chain.hash_to_utxoblock(hash, params)
+  end
+
+  defp fetch_utxoblock(:number, number, params) do
+    case Chain.number_to_utxoblock(number, params) do
       {:ok, _block} = ok_response ->
         ok_response
 
@@ -82,6 +105,47 @@ defmodule BlockScoutWeb.API.V2.BlockController do
     conn
     |> put_status(200)
     |> render(:blocks, %{blocks: blocks, next_page_params: next_page_params})
+  end
+
+  def utxoblocks(conn, params) do
+    full_options = select_block_type(params)
+
+    blocks_plus_one =
+      full_options
+      |> Keyword.merge(paging_options(params))
+      |> Keyword.merge(@api_true)
+      |> Chain.list_utxoblocks()
+
+    {blocks, next_page} = split_list_by_page(blocks_plus_one)
+
+    next_page_params = next_page |> next_page_params(blocks, delete_parameters_from_next_page_params(params))
+
+    conn
+    |> put_status(200)
+    |> render(:utxoblocks, %{blocks: blocks, next_page_params: next_page_params})
+  end
+
+  def utxotransactions(conn, %{"block_hash_or_number" => block_hash_or_number} = params) do
+    with {:ok, type, value} <- parse_block_hash_or_number_param(block_hash_or_number),
+         {:ok, block} <- fetch_utxoblock(type, value, @api_true) do
+      full_options =
+        @transaction_necessity_by_association
+        |> Keyword.merge(put_key_value_to_paging_options(paging_options(params), :is_index_in_asc_order, true))
+        |> Keyword.merge(@api_true)
+
+      transactions_plus_one = Chain.block_to_utxotransactions(block.hash, full_options, false)
+
+      {transactions, next_page} = split_list_by_page(transactions_plus_one)
+
+      next_page_params =
+        next_page
+        |> next_page_params(transactions, delete_parameters_from_next_page_params(params))
+
+      conn
+      |> put_status(200)
+      |> put_view(TransactionView)
+      |> render(:utxotransactions, %{transactions: transactions, next_page_params: next_page_params})
+    end
   end
 
   def transactions(conn, %{"block_hash_or_number" => block_hash_or_number} = params) do

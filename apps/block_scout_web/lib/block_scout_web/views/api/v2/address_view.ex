@@ -20,6 +20,10 @@ defmodule BlockScoutWeb.API.V2.AddressView do
     prepare_address(address, conn)
   end
 
+  def render("utxoaddress.json", %{addrinfo: addrinfo, conn: conn}) do
+    prepare_utxoaddress(addrinfo)
+  end
+
   def render("token_balances.json", %{token_balances: token_balances}) do
     Enum.map(token_balances, &prepare_token_balance/1)
   end
@@ -51,6 +55,15 @@ defmodule BlockScoutWeb.API.V2.AddressView do
       next_page_params: next_page_params,
       exchange_rate: exchange_rate.usd_value,
       total_supply: total_supply && to_string(total_supply)
+    }
+  end
+
+  def prepare_utxoaddress(addrinfo) do
+    %{
+      "address" => addrinfo.address,
+      "available" => addrinfo.available,
+      "spent" => addrinfo.spent,
+      "unavailable" => addrinfo.unavailable
     }
   end
 

@@ -143,11 +143,22 @@ defmodule BlockScoutWeb.ApiRouter do
       get("/:transaction_hash_param/state-changes", V2.TransactionController, :state_changes)
     end
 
+    scope "/utxotransactions" do
+      get("/", V2.TransactionController, :utxotransactions)
+      get("/:transaction_hash_param", V2.TransactionController, :utxotransaction)
+    end
+
     scope "/blocks" do
       get("/", V2.BlockController, :blocks)
       get("/:block_hash_or_number", V2.BlockController, :block)
       get("/:block_hash_or_number/transactions", V2.BlockController, :transactions)
       get("/:block_hash_or_number/withdrawals", V2.BlockController, :withdrawals)
+    end
+
+    scope "/utxoblocks" do
+      get("/", V2.BlockController, :utxoblocks)
+      get("/:block_hash_or_number", V2.BlockController, :utxoblock)
+      get("/:block_hash_or_number/transactions", V2.BlockController, :utxotransactions)
     end
 
     scope "/addresses" do
@@ -165,6 +176,12 @@ defmodule BlockScoutWeb.ApiRouter do
       get("/:address_hash_param/coin-balance-history", V2.AddressController, :coin_balance_history)
       get("/:address_hash_param/coin-balance-history-by-day", V2.AddressController, :coin_balance_history_by_day)
       get("/:address_hash_param/withdrawals", V2.AddressController, :withdrawals)
+    end
+
+    scope "/utxoaddresses" do
+      get("/:address_hash_param", V2.AddressController, :utxoaddress)
+      get("/:address_hash_param/transactions", V2.AddressController, :utxotransactions)
+
     end
 
     scope "/tokens" do

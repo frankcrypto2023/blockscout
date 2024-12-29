@@ -8,10 +8,10 @@ defmodule Explorer.Chain.UTXOBlock do
   use Explorer.Schema
 
   alias Explorer.Chain.{ Hash, }
+  alias Explorer.Repo
+  @optional_attrs ~w(difficulty confirms)a
 
-  @optional_attrs ~w(difficulty)a
-
-  @required_attrs ~w(txsvalid hash miner_hash nonce order height parent_root timestamp)a
+  @required_attrs ~w(txsvalid hash miner_hash nonce blockorder height parent_root timestamp weight powname txns coinbase)a
 
   @typedoc """
   How much work is required to find a hash with some number of leading 0s.  It is measured in hashes for PoW
@@ -42,29 +42,35 @@ defmodule Explorer.Chain.UTXOBlock do
   @type t :: %__MODULE__{
           txsvalid: boolean(),
           difficulty: difficulty(),
-          hash: Hash.Full.t(),
+          hash: String.t(),
           miner_hash: String.t(),
           nonce: non_neg_integer(),
-          order: block_number(),
+          blockorder: block_number(),
           height: block_number(),
-          parent_root: Hash.t(),
+          weight: block_number(),
+          parent_root: String.t(),
           timestamp: DateTime.t(),
           powname: String.t(),
           txns: non_neg_integer(),
+          coinbase: difficulty(),
+          confirms: non_neg_integer()
         }
 
-  @primary_key {:hash, Hash.Full, autogenerate: false}
+  @primary_key {:hash, :string, autogenerate: false}
   schema "utxoblocks" do
     field(:difficulty, :decimal)
     field(:miner_hash, :string)
     field(:nonce, Hash.Nonce)
-    field(:order, :integer)
+    field(:blockorder, :integer)
     field(:height, :integer)
+    field(:weight, :integer)
     field(:timestamp, :utc_datetime_usec)
-    field(:parent_root, Hash.Full)
+    field(:parent_root, :string)
     field(:powname, :string)
     field(:txns, :integer)
+    field(:coinbase, :decimal)
     field(:txsvalid, :boolean)
+    field(:confirms, :integer)
 
     timestamps()
   end
@@ -82,5 +88,18 @@ defmodule Explorer.Chain.UTXOBlock do
     |> validate_required([:number])
     |> unique_constraint(:hash, name: :utxoblocks_pkey)
   end
+  def block_filter(query), do: where(query, [utxoblock], utxoblock.blockorder >= 0)
+  def insert_block(attrs) do
+    %__MODULE__{}
+    |> changeset(attrs)
+    |> Repo.insert!()
+  end
 
+  def min_max_block_query do
+    from(r in __MODULE__, select: %{min: min(r.blockorder), max: max(r.blockorder)})
+  end
+
+  def fetch_min_max do
+    Repo.one(min_max_block_query())
+  end
 end

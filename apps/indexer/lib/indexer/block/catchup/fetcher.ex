@@ -18,11 +18,13 @@ defmodule Indexer.Block.Catchup.Fetcher do
       async_import_token_balances: 1,
       async_import_token_instances: 1,
       async_import_uncles: 1,
-      fetch_and_import_range: 2
+      fetch_and_import_range: 2,
+      qng_fetch_and_import_range: 2
     ]
-
+  import Explorer.Chain.UTXOBlock, only: [fetch_min_max: 0]
   alias Ecto.Changeset
   alias Explorer.Chain
+  alias Explorer.Chain.{UTXOBlock}
   alias Explorer.Utility.MissingRangesManipulator
   alias Indexer.{Block, Tracer}
   alias Indexer.Block.Catchup.{Sequence, TaskSupervisor}
@@ -57,7 +59,6 @@ defmodule Indexer.Block.Catchup.Fetcher do
 
       latest_missing_ranges ->
         missing_ranges = filter_consensus_blocks(latest_missing_ranges)
-
         first.._ = List.first(missing_ranges)
         _..last = List.last(missing_ranges)
 
@@ -77,7 +78,6 @@ defmodule Indexer.Block.Catchup.Fetcher do
         stream_fetch_and_import(state, sequence)
 
         shrunk = Shrinkable.shrunk?(sequence)
-
         %{
           first_block_number: first,
           last_block_number: last,
@@ -168,7 +168,6 @@ defmodule Indexer.Block.Catchup.Fetcher do
   defp stream_fetch_and_import(state, sequence)
        when is_pid(sequence) do
     ranges = Sequence.build_stream(sequence)
-
     TaskSupervisor
     |> Task.Supervisor.async_stream(ranges, &fetch_and_import_range_from_sequence(state, &1, sequence),
       max_concurrency: blocks_concurrency(),
@@ -185,14 +184,21 @@ defmodule Indexer.Block.Catchup.Fetcher do
               tracer: Tracer
             )
   defp fetch_and_import_range_from_sequence(
-         %__MODULE__{block_fetcher: %Block.Fetcher{} = block_fetcher},
+         %__MODULE__{block_fetcher: %Block.Fetcher{} = block_fetcher} = state,
          first..last = range,
          sequence
        ) do
     Logger.metadata(fetcher: :block_catchup, first_block_number: first, last_block_number: last)
     Process.flag(:trap_exit, true)
-    Logger.info(fn -> "Fetching range #{inspect(range)}" end, fetcher: :block_catchup)
     {fetch_duration, result} = :timer.tc(fn -> fetch_and_import_range(block_fetcher, range) end)
+    # case fetch_min_max() do
+    #   %{min: min, max: max} ->
+    #   max = min - 1
+    #   min = 0
+    #   range = min..max
+    #   Logger.info(fn -> "UTXO BLocks Fetching range #{inspect(range)}" end, fetcher: :block_catchup)
+    #   :timer.tc(fn -> qng_fetch_and_import_range_from_sequence(state,range) end)
+    # end
 
     Prometheus.Instrumenter.block_full_process(fetch_duration, __MODULE__)
 
@@ -248,6 +254,22 @@ defmodule Indexer.Block.Catchup.Fetcher do
     exception ->
       Logger.error(fn -> [Exception.format(:error, exception, __STACKTRACE__), ?\n, ?\n, "Retrying."] end)
       {:error, exception}
+  end
+
+
+  defp qng_fetch_and_import_range_from_sequence(
+         %__MODULE__{block_fetcher: %Block.Fetcher{} = block_fetcher},
+         range
+       ) do
+    case fetch_min_max() do
+      %{min: min, max: max} ->
+      max = min - 1
+      min = min-11
+      range = min..max
+      Logger.info(fn -> "UTXO BLocks Fetching range #{inspect(range)}" end, fetcher: :block_catchup)
+      qng_fetch_and_import_range(block_fetcher, range)
+    end
+
   end
 
   defp cap_seq(seq, errors) do

@@ -8,10 +8,12 @@ defmodule Indexer.Block.Fetcher do
   require Logger
 
   import EthereumJSONRPC, only: [quantity_to_integer: 1]
-
+  import Explorer.Chain.UTXOBlock, only: [insert_block: 1]
+  import Explorer.Chain.UTXOTransaction, only: [insert_tx: 1,utxotx_update_status: 3]
+  import Explorer.Chain.UTXOAddress, only: [utxoaddress_update: 2]
   alias EthereumJSONRPC.{Blocks, FetchedBeneficiaries}
   alias Explorer.Chain
-  alias Explorer.Chain.{Address, Block, Hash, Import, Transaction, Wei}
+  alias Explorer.Chain.{Address, Block, Hash, Import, Transaction, Wei,UTXOBlock,UTXOTransaction}
   alias Explorer.Chain.Block.Reward
   alias Explorer.Chain.Cache.Blocks, as: BlocksCache
   alias Explorer.Chain.Cache.{Accounts, BlockNumber, Transactions, Uncles}
@@ -216,6 +218,97 @@ defmodule Indexer.Block.Fetcher do
     end
   end
 
+   defp convert_to_utxo_block(block_data) do
+        coinbase = block_data["transactions"] |> List.first()
+        vout = hd(coinbase["vout"])
+        script = vout["scriptPubKey"]
+        %{
+            blockorder: block_data["order"],
+            height: block_data["height"],
+            weight: block_data["weight"],
+            txsvalid: block_data["txsvalid"],
+            miner_hash: hd(script["addresses"]),
+            hash: block_data["hash"],
+            parent_root: block_data["parentroot"],
+            timestamp: block_data["timestamp"],
+            nonce: block_data["pow"] |> Map.get("nonce"),
+            powname: block_data["pow"] |> Map.get("pow_name"),
+            difficulty: block_data["difficulty"],
+            txns: length(block_data["transactions"]),
+            coinbase: vout["amount"],
+            confirms: block_data["confirmations"]
+        }
+    end
+    defp save_blocks_to_db(blocks) do
+        Enum.each(blocks, &insert_block/1)
+    end
+    def convert_and_save_to_db(block_list) do
+        block_list
+        |> Enum.map(&convert_to_utxo_block/1)
+        |> save_blocks_to_db()
+    end
+    defp convert_to_utxo_transaction_vout(vout,index,txindex,tx_data,blockorder,blockhash) do
+        script = vout["scriptPubKey"]
+        case Map.fetch(script, "addresses") do
+            {:ok, _} ->
+              addr = hd(script["addresses"])
+        vins = tx_data["vin"]
+        |> Enum.map(fn vin ->
+            case Map.fetch(vin, :txid) do
+              {:ok, txid} ->
+                # set txid spent status
+                utxotx_update_status(txid, vin["vout"], tx_data["txid"])
+                "#{txid}:#{vin["vout"]}"
+              :error -> "coinbase:#{vin["coinbase"]}" # coinbase tx
+            end
+        end)
+        |> Enum.join(",")
+        # utxoaddress_update(addr, vout["amount"])
+        %{
+            blockorder: blockorder,
+            block_hash: blockhash,
+            size: tx_data["size"],
+            txindex: txindex,
+            index: index,
+            hash: tx_data["txid"],
+            locktime: tx_data["locktime"],
+            toaddress: addr,
+            amount: vout["amount"],
+            fee: 0,
+            txtime: tx_data["timestamp"],
+            vin: vins,
+            pkscript: vout["scriptPubKey"]["hex"],
+            status: 1
+        }
+            :error ->
+              %{
+                :error => "no addresses"
+              }
+        end
+
+    end
+    defp convert_to_utxo_transaction(tx_data,txindex,blockorder,blockhash) do
+        tx_data["vout"]
+        |> Enum.with_index()
+        |> Enum.map(fn {vout, index} ->
+          convert_to_utxo_transaction_vout(vout,index,txindex,tx_data, blockorder,blockhash)
+        end)
+    end
+    defp convert_to_utxo_block_transaction(block_data) do
+        block_data["transactions"]
+        |> Enum.with_index()
+        |> Enum.map(fn {transaction, index} ->
+          convert_to_utxo_transaction(transaction,index, block_data["order"],block_data["hash"])
+        |> save_tx_to_db()
+        end)
+    end
+    defp save_tx_to_db(blocks) do
+        Enum.each(blocks, &insert_tx/1)
+    end
+    def convert_and_save_tx_to_db(block_list) do
+        block_list
+        |> Enum.map(&convert_to_utxo_block_transaction/1)
+    end
   @spec qng_fetch_and_import_range(t, Range.t()) ::
           {:ok, %{inserted: %{}, errors: [EthereumJSONRPC.Transport.error()]}}
           | {:error,
@@ -228,34 +321,21 @@ defmodule Indexer.Block.Fetcher do
           json_rpc_named_arguments: json_rpc_named_arguments
         } = state,
         _.._ = range
-      )
-      when callback_module != nil do
-    {fetch_time, fetched_blocks} =
-      :timer.tc(fn -> EthereumJSONRPC.qng_fetch_blocks_by_range(range, json_rpc_named_arguments) end)
-
+      ) do
+    {fetch_time, fetched_blocks} = :timer.tc(fn -> EthereumJSONRPC.qng_fetch_blocks_by_range(range, json_rpc_named_arguments) end)
     with {:blocks,
           {:ok,
            %Blocks{
-             blocks_params: blocks_params,
-             errors: blocks_errors
-           }}} <- {:blocks, fetched_blocks},
-         blocks = TransformBlocks.transform_blocks(blocks_params),
-        Logger.info("--------------------------Importing #{length(blocks)} blocks"),
-         {:ok, inserted} <-
-           __MODULE__.import(
-             state,
-             %{
-               utxoblocks: %{params: blocks},
-             }
-           ) do
-      Prometheus.Instrumenter.block_batch_fetch(fetch_time, callback_module)
-      result = {:ok, %{inserted: inserted, errors: blocks_errors}}
-      update_block_cache(inserted[:blocks])
-      result
+             blocks_params: blocks_params
+           }}} <- {:blocks, fetched_blocks} do
+          #IO.inspect(blocks_params)
+          convert_and_save_to_db(blocks_params)
+          convert_and_save_tx_to_db(blocks_params)
+          # blocks_params
     else
-      {step, {:error, reason}} -> {:error, {step, reason}}
-      {:import, {:error, step, failed_value, changes_so_far}} -> {:error, {step, failed_value, changes_so_far}}
+      _ -> []
     end
+    {:ok}
   end
 
   defp update_block_cache([]), do: :ok

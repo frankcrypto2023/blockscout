@@ -48,6 +48,7 @@ defmodule Explorer.Chain do
     Address.CurrentTokenBalance,
     Address.TokenBalance,
     Block,
+    UTXOBlock,
     CurrencyHelper,
     Data,
     DecompiledSmartContract,
@@ -63,6 +64,8 @@ defmodule Explorer.Chain do
     Token.Instance,
     TokenTransfer,
     Transaction,
+    UTXOTransaction,
+    UTXOAddress,
     Wei,
     Withdrawal
   }
@@ -370,6 +373,13 @@ defmodule Explorer.Chain do
     |> Enum.take(paging_options.page_size)
   end
 
+  def address_to_utxotransactions(address_hash, options, old_ui? \\ true) do
+    UTXOTransaction
+    # |> Keyword.get(:paging_options, @default_paging_options)
+    |> where([transaction], transaction.toaddress == ^address_hash)
+    |> select_repo(options).all()
+  end
+
   def address_hashes_to_mined_transactions_without_rewards(address_hashes, options) do
     paging_options = Keyword.get(options, :paging_options, @default_paging_options)
 
@@ -598,6 +608,10 @@ defmodule Explorer.Chain do
     )
   end
 
+  def where_block_number_in_period(base_query, from_block, to_block) when is_nil(from_block) and is_nil(to_block) do
+    base_query
+  end
+
   def where_block_number_in_period(base_query, from_block, to_block) when is_nil(from_block) and not is_nil(to_block) do
     from(q in base_query,
       where: q.block_number <= ^to_block
@@ -610,13 +624,35 @@ defmodule Explorer.Chain do
     )
   end
 
-  def where_block_number_in_period(base_query, from_block, to_block) when is_nil(from_block) and is_nil(to_block) do
+  def where_utxoblock_number_in_period(base_query, from_block, to_block) when is_nil(from_block) and is_nil(to_block) do
     base_query
   end
 
-  def where_block_number_in_period(base_query, from_block, to_block) do
+  def where_utxoblock_number_in_period(base_query, from_block, to_block) do
     from(q in base_query,
-      where: q.block_number > ^from_block and q.block_number <= ^to_block
+      where: q.blockorder > ^from_block and q.block_number <= ^to_block
+    )
+  end
+
+  def where_utxoblock_number_in_period(base_query, from_block, to_block) when is_nil(from_block) and not is_nil(to_block) do
+    from(q in base_query,
+      where: q.blockorder <= ^to_block
+    )
+  end
+
+  def where_utxoblock_number_in_period(base_query, from_block, to_block) when not is_nil(from_block) and is_nil(to_block) do
+    from(q in base_query,
+      where: q.blockorder > ^from_block
+    )
+  end
+
+  def where_utxoblock_number_in_period(base_query, from_block, to_block) when is_nil(from_block) and is_nil(to_block) do
+    base_query
+  end
+
+  def where_utxoblock_number_in_period(base_query, from_block, to_block) do
+    from(q in base_query,
+      where: q.blockorder > ^from_block and q.blockorder <= ^to_block
     )
   end
 
@@ -848,6 +884,15 @@ defmodule Explorer.Chain do
           else:
             Enum.map(&1, fn tx -> preload_token_transfers(tx, @token_transfers_necessity_by_association, options) end)
         )).()
+  end
+  def block_to_utxotransactions(block_hash, options \\ [], old_ui? \\ true) when is_list(options) do
+    necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+
+    options
+    |> Keyword.get(:paging_options, @default_paging_options)
+    |> fetch_transactions_in_ascending_order_by_utxoindex()
+    |> where([transaction], transaction.block_hash == ^block_hash)
+    |> select_repo(options).all()
   end
 
   @spec block_to_withdrawals(
@@ -1604,7 +1649,21 @@ defmodule Explorer.Chain do
         {:ok, block}
     end
   end
+  def hash_to_utxoblock(hash, options \\ []) when is_list(options) do
+    necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
 
+    UTXOBlock
+    |> where(hash: ^hash)
+    |> join_associations(necessity_by_association)
+    |> select_repo(options).one()
+    |> case do
+      nil ->
+        {:error, :not_found}
+
+      block ->
+        {:ok, block}
+    end
+  end
   @doc """
   Converts the `Explorer.Chain.Hash.t:t/0` to `iodata` representation that can be written efficiently to users.
 
@@ -1677,6 +1736,28 @@ defmodule Explorer.Chain do
       transaction ->
         {:ok, transaction}
     end
+  end
+
+  def hash_to_utxotransaction(hash,options \\ [])
+      when is_list(options) do
+    necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+
+    UTXOTransaction
+    |> where(hash: ^hash)
+    |> select_repo(options).one()
+    |> case do
+      nil ->
+        {:error, :not_found}
+
+      transaction ->
+        {:ok, transaction}
+    end
+  end
+
+  def utxoaddress(addr,options \\ []) do
+    UTXOAddress
+    |> where(address: ^addr)
+    |> select_repo(options).one()
   end
 
   # preload_to_detect_tt?: we don't need to preload more than one token transfer in case the tx inside the list (we don't show any token transfers on tx tile in new UI)
@@ -1950,6 +2031,13 @@ defmodule Explorer.Chain do
     end
   end
 
+  @spec list_utxoblocks([paging_options | necessity_by_association_option | api?]) :: [UTXOBlock.t()]
+  def list_utxoblocks(options \\ []) when is_list(options) do
+    necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+    paging_options = Keyword.get(options, :paging_options) || @default_paging_options
+    fetch_utxoblocks(paging_options, necessity_by_association, options)
+  end
+
   defp block_from_cache(block_type, paging_options, necessity_by_association, options) do
     case Blocks.take_enough(paging_options.page_size) do
       nil ->
@@ -1985,6 +2073,16 @@ defmodule Explorer.Chain do
     |> limit(^paging_options.page_size)
     |> order_by(desc: :number)
     |> join_associations(necessity_by_association)
+    |> select_repo(options).all()
+  end
+
+   defp fetch_utxoblocks(paging_options, necessity_by_association, options) do
+    UTXOBlock
+    |> UTXOBlock.block_filter()
+    |> page_utxoblocks(paging_options)
+    |> limit(^paging_options.page_size)
+    |> order_by(desc: :blockorder)
+    # |> join_associations(necessity_by_association)
     |> select_repo(options).all()
   end
 
@@ -2498,6 +2596,12 @@ defmodule Explorer.Chain do
     select_repo(options).one!(query)
   end
 
+  def utxoblock_order(options \\ []) do
+    query = from(block in UTXOBlock, select: coalesce(max(block.blockorder), 0), where: block.txsvalid == true)
+
+    select_repo(options).one!(query)
+  end
+
   def last_db_block_status do
     query =
       from(block in Block,
@@ -2753,7 +2857,18 @@ defmodule Explorer.Chain do
       block -> {:ok, block}
     end
   end
+  def number_to_utxoblock(number, options \\ []) when is_list(options) do
+    necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
 
+    UTXOBlock
+    |> where(txsvalid: true, blockorder: ^number)
+    # |> join_associations(necessity_by_association)
+    |> select_repo(options).one()
+    |> case do
+      nil -> {:error, :not_found}
+      block -> {:ok, block}
+    end
+  end
   @spec nonconsensus_block_by_number(Block.block_number(), [api?]) :: {:ok, Block.t()} | {:error, :not_found}
   def nonconsensus_block_by_number(number, options) do
     Block
@@ -2885,6 +3000,23 @@ defmodule Explorer.Chain do
     )
   end
 
+  def recent_collated_utxotransactions(old_ui?, options \\ [])
+      when is_list(options) do
+    necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+    paging_options = Keyword.get(options, :paging_options, @default_paging_options)
+    method_id_filter = Keyword.get(options, :method)
+    type_filter = Keyword.get(options, :type)
+
+    fetch_recent_collated_utxotransactions(
+      old_ui?,
+      paging_options,
+      necessity_by_association,
+      method_id_filter,
+      type_filter,
+      options
+    )
+  end
+
   # RAP - random access pagination
   @spec recent_collated_transactions_for_rap([paging_options | necessity_by_association_option]) :: %{
           :total_transactions_count => non_neg_integer(),
@@ -2964,6 +3096,23 @@ defmodule Explorer.Chain do
         )).()
   end
 
+  def fetch_recent_collated_utxotransactions(
+        old_ui?,
+        paging_options,
+        necessity_by_association,
+        method_id_filter,
+        type_filter,
+        options
+      ) do
+    paging_options
+    |> fetch_utxotransactions()
+    |> where([transaction], not is_nil(transaction.blockorder) and not is_nil(transaction.txindex))
+    # |> apply_filter_by_method_id_to_transactions(method_id_filter)
+    # |> apply_filter_by_tx_type_to_transactions(type_filter)
+    # |> join_associations(necessity_by_association)
+    |> select_repo(options).all()
+  end
+
   @doc """
   Return the list of pending transactions that occurred recently.
 
@@ -3009,7 +3158,22 @@ defmodule Explorer.Chain do
     |> (&if(old_ui?, do: preload(&1, [{:token_transfers, [:token, :from_address, :to_address]}]), else: &1)).()
     |> select_repo(options).all()
   end
+  def recent_pending_utxotransactions(options \\ [], old_ui? \\ true)
+      when is_list(options) do
+    necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+    paging_options = Keyword.get(options, :paging_options, @default_paging_options)
+    method_id_filter = Keyword.get(options, :method)
+    type_filter = Keyword.get(options, :type)
 
+    UTXOTransaction
+    |> page_pending_utxotransaction(paging_options)
+    |> limit(^paging_options.page_size)
+    |> pending_transactions_query()
+    |> apply_filter_by_method_id_to_transactions(method_id_filter)
+    |> apply_filter_by_tx_type_to_transactions(type_filter)
+    |> order_by([transaction], desc: transaction.inserted_at, asc: transaction.hash)
+    |> select_repo(options).all()
+  end
   def pending_transactions_query(query) do
     from(transaction in query,
       where: is_nil(transaction.block_hash) and (is_nil(transaction.error) or transaction.error != "dropped/replaced")
@@ -3971,7 +4135,12 @@ defmodule Explorer.Chain do
     |> where_block_number_in_period(from_block, to_block)
     |> handle_paging_options(paging_options)
   end
-
+  defp fetch_utxotransactions(paging_options \\ nil, from_block \\ nil, to_block \\ nil, with_pending? \\ false) do
+    UTXOTransaction
+    |> order_for_utxotransactions(with_pending?)
+    |> where_utxoblock_number_in_period(from_block, to_block)
+    |> handle_paging_options(paging_options)
+  end
   defp order_for_transactions(query, true) do
     query
     |> order_by([transaction],
@@ -3982,6 +4151,21 @@ defmodule Explorer.Chain do
     )
   end
 
+  defp order_for_utxotransactions(query, true) do
+    query
+    |> order_by([transaction],
+      desc: transaction.blockorder,
+      desc: transaction.txindex,
+      desc: transaction.inserted_at,
+      asc: transaction.hash
+    )
+  end
+
+  defp order_for_utxotransactions(query, _) do
+    query
+    |> order_by([transaction], desc: transaction.blockorder, desc: transaction.txindex)
+  end
+
   defp order_for_transactions(query, _) do
     query
     |> order_by([transaction], desc: transaction.block_number, desc: transaction.index)
@@ -3990,6 +4174,12 @@ defmodule Explorer.Chain do
   defp fetch_transactions_in_ascending_order_by_index(paging_options) do
     Transaction
     |> order_by([transaction], asc: transaction.index)
+    |> handle_block_paging_options(paging_options)
+  end
+
+  defp fetch_transactions_in_ascending_order_by_utxoindex(paging_options) do
+    UTXOTransaction
+    |> order_by([transaction], asc: transaction.txindex)
     |> handle_block_paging_options(paging_options)
   end
 
@@ -4135,6 +4325,12 @@ defmodule Explorer.Chain do
     where(query, [block], block.number < ^block_number)
   end
 
+  defp page_utxoblocks(query, %PagingOptions{key: nil}), do: query
+
+  defp page_utxoblocks(query, %PagingOptions{key: {block_number}}) do
+    where(query, [utxoblock], utxoblock.blockorder < ^block_number)
+  end
+
   defp page_coin_balances(query, %PagingOptions{key: nil}), do: query
 
   defp page_coin_balances(query, %PagingOptions{key: {block_number}}) do
@@ -4217,6 +4413,19 @@ defmodule Explorer.Chain do
          (transaction.inserted_at < ^inserted_at or
             (transaction.inserted_at == ^inserted_at and transaction.hash > ^hash))) or
         not is_nil(transaction.block_number)
+    )
+  end
+
+  defp page_pending_utxotransaction(query, %PagingOptions{key: nil}), do: query
+
+  defp page_pending_utxotransaction(query, %PagingOptions{key: {inserted_at, hash}}) do
+    where(
+      query,
+      [transaction],
+      (is_nil(transaction.blockorder) and
+         (transaction.inserted_at < ^inserted_at or
+            (transaction.inserted_at == ^inserted_at and transaction.hash > ^hash))) or
+        not is_nil(transaction.blockorder)
     )
   end
 
@@ -5906,6 +6115,14 @@ defmodule Explorer.Chain do
 
   def recent_transactions(options, _) do
     recent_collated_transactions(false, options)
+  end
+
+  def recent_utxotransactions(options, [:pending | _]) do
+    recent_pending_utxotransactions(options, false)
+  end
+
+  def recent_utxotransactions(options, _) do
+    recent_collated_utxotransactions(false, options)
   end
 
   def apply_filter_by_method_id_to_transactions(query, nil), do: query

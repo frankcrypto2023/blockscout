@@ -81,6 +81,18 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
     end
   end
 
+  def utxotransaction(conn, %{"transaction_hash_param" => transaction_hash_string} = params) do
+     with {:ok, transaction} <- Chain.hash_to_utxotransaction(
+              transaction_hash_string,
+              necessity_by_association: Map.put(@transaction_necessity_by_association, :transaction_actions, :optional),
+              api?: true
+            ) do
+      conn
+      |> put_status(200)
+      |> render(:utxotransaction, %{transaction: transaction})
+    end
+  end
+
   def transactions(conn, params) do
     filter_options = filter_options(params, :validated)
 
@@ -102,6 +114,29 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
     conn
     |> put_status(200)
     |> render(:transactions, %{transactions: transactions, next_page_params: next_page_params})
+  end
+
+  def utxotransactions(conn, params) do
+    filter_options = filter_options(params, :validated)
+
+    full_options =
+      [
+        # necessity_by_association: @transaction_necessity_by_association
+      ]
+      |> Keyword.merge(paging_options(params, filter_options))
+      |> Keyword.merge(method_filter_options(params))
+      |> Keyword.merge(type_filter_options(params))
+      |> Keyword.merge(@api_true)
+
+    transactions_plus_one = Chain.recent_utxotransactions(full_options, filter_options)
+
+    {transactions, next_page} = split_list_by_page(transactions_plus_one)
+
+    next_page_params = next_page |> next_page_params(transactions, delete_parameters_from_next_page_params(params))
+
+    conn
+    |> put_status(200)
+    |> render(:utxotransactions, %{transactions: transactions, next_page_params: next_page_params})
   end
 
   def raw_trace(conn, %{"transaction_hash_param" => transaction_hash_string} = params) do

@@ -8,7 +8,7 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
   alias BlockScoutWeb.TransactionStateView
   alias Ecto.Association.NotLoaded
   alias Explorer.{Chain, Market}
-  alias Explorer.Chain.{Address, Block, InternalTransaction, Log, Token, Transaction, Wei}
+  alias Explorer.Chain.{Address, Block,UTXOTransaction, InternalTransaction, Log, Token, Transaction, Wei}
   alias Explorer.Chain.Block.Reward
   alias Explorer.Chain.Transaction.StateChange
   alias Explorer.Counters.AverageBlockTime
@@ -70,6 +70,16 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
     }
   end
 
+  def render("utxotransactions.json", %{transactions: transactions, next_page_params: next_page_params, conn: conn}) do
+    block_height = Chain.utxoblock_order(@api_true)
+    %{
+      "items" =>
+        transactions
+        |> Enum.map(fn tx -> prepare_utxotransaction(tx, conn, false, block_height) end),
+      "next_page_params" => next_page_params
+    }
+  end
+
   def render("transactions.json", %{transactions: transactions, conn: conn}) do
     block_height = Chain.block_height(@api_true)
     {decoded_transactions, _, _} = decode_transactions(transactions, true)
@@ -83,6 +93,11 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
     block_height = Chain.block_height(@api_true)
     {[decoded_input], _, _} = decode_transactions([transaction], false)
     prepare_transaction(transaction, conn, true, block_height, decoded_input)
+  end
+
+  def render("utxotransaction.json", %{transaction: transaction, conn: conn}) do
+    block_height = Chain.block_height(@api_true)
+    prepare_utxotransaction(transaction, conn, true, block_height)
   end
 
   def render("raw_trace.json", %{internal_transactions: internal_transactions}) do
@@ -331,6 +346,27 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
           single_tx?
         ),
       "types" => [:reward]
+    }
+  end
+
+  defp prepare_utxotransaction(tx, conn, single_tx?, block_height)
+
+  defp prepare_utxotransaction(
+         %UTXOTransaction{} = tx,
+         conn,
+         single_tx?,
+         _block_height
+       ) do
+    %{
+      "block_hash" => tx.block_hash,
+      "blockorder" => tx.blockorder,
+      "hash" => tx.hash,
+      "txtime" => tx.txtime,
+      "size" => tx.size,
+      "txindex" => tx.txindex,
+      "toaddress" => tx.toaddress,
+      "spenttxhash" => tx.spenttxhash,
+      "amount" => tx.amount,
     }
   end
 

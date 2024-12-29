@@ -5,7 +5,7 @@ defmodule Explorer.Utility.MissingRangesManipulator do
 
   use GenServer
 
-  alias Explorer.Utility.MissingBlockRange
+  alias Explorer.Utility.{MissingBlockRange}
 
   @spec start_link(term()) :: GenServer.on_start()
   def start_link(_) do

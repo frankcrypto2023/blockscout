@@ -24,6 +24,7 @@ defmodule BlockScoutWeb.Chain do
     Address.CoinBalance,
     Address.CurrentTokenBalance,
     Block,
+    UTXOBlock,
     Hash,
     InternalTransaction,
     Log,
@@ -34,6 +35,7 @@ defmodule BlockScoutWeb.Chain do
     Transaction,
     Transaction.StateChange,
     Wei,
+    UTXOTransaction,
     Withdrawal
   }
 
@@ -442,6 +444,10 @@ defmodule BlockScoutWeb.Chain do
     %{"block_number" => number}
   end
 
+  defp paging_params(%UTXOBlock{blockorder: blockorder}) do
+    %{"block_number" => blockorder}
+  end
+
   defp paging_params(%InternalTransaction{index: index, transaction_hash: transaction_hash}) do
     {:ok, %Transaction{block_number: block_number, index: transaction_index}} = hash_to_transaction(transaction_hash)
     %{"block_number" => block_number, "transaction_index" => transaction_index, "index" => index}
@@ -455,8 +461,16 @@ defmodule BlockScoutWeb.Chain do
     %{"inserted_at" => DateTime.to_iso8601(inserted_at), "hash" => hash}
   end
 
+  defp paging_params(%UTXOTransaction{blockorder: nil, inserted_at: inserted_at, hash: hash}) do
+    %{"inserted_at" => DateTime.to_iso8601(inserted_at), "hash" => hash}
+  end
+
   defp paging_params(%Transaction{block_number: block_number, index: index}) do
     %{"block_number" => block_number, "index" => index}
+  end
+
+  defp paging_params(%UTXOTransaction{blockorder: block_number, txindex: index}) do
+    %{"blockorder" => block_number, "txindex" => index}
   end
 
   defp paging_params(%TokenTransfer{block_number: block_number, log_index: index}) do

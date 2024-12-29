@@ -11,6 +11,10 @@ defmodule BlockScoutWeb.API.V2.BlockView do
     ApiView.render("message.json", assigns)
   end
 
+  def render("utxoblocks.json", %{blocks: blocks, next_page_params: next_page_params}) do
+    %{"items" => Enum.map(blocks, &prepare_utxoblock(&1, nil)), "next_page_params" => next_page_params}
+  end
+
   def render("blocks.json", %{blocks: blocks, next_page_params: next_page_params}) do
     %{"items" => Enum.map(blocks, &prepare_block(&1, nil)), "next_page_params" => next_page_params}
   end
@@ -21,6 +25,10 @@ defmodule BlockScoutWeb.API.V2.BlockView do
 
   def render("block.json", %{block: block, conn: conn}) do
     prepare_block(block, conn, true)
+  end
+
+  def render("utxoblock.json", %{block: block, conn: conn}) do
+    prepare_utxoblock(block, conn, true)
   end
 
   def render("block.json", %{block: block, socket: _socket}) do
@@ -60,6 +68,24 @@ defmodule BlockScoutWeb.API.V2.BlockView do
       "type" => block |> BlockView.block_type() |> String.downcase(),
       "tx_fees" => tx_fees,
       "withdrawals_count" => count_withdrawals(block)
+    }
+  end
+
+  def prepare_utxoblock(block, _conn, single_block? \\ false) do
+    %{
+      "blockorder" => block.blockorder,
+      "height" => block.height,
+      "timestamp" => block.timestamp,
+      "tx_count" => block.txns,
+      "miner_hash" => block.miner_hash,
+      "hash" => block.hash,
+      "parent_root" => block.parent_root,
+      "difficulty" => block.difficulty,
+      "powname" => block.powname,
+      "txsvalid" => block.txsvalid,
+      "nonce" => block.nonce,
+      "confirms" => block.confirms,
+      "weight" => block.weight
     }
   end
 
