@@ -7,7 +7,8 @@ defmodule BlockScoutWeb.API.V2.BlockController do
       paging_options: 1,
       put_key_value_to_paging_options: 3,
       split_list_by_page: 1,
-      parse_block_hash_or_number_param: 1
+      parse_block_hash_or_number_param: 1,
+      parse_utxoblock_hash_or_number_param: 1
     ]
 
   import BlockScoutWeb.PagingHelper, only: [delete_parameters_from_next_page_params: 1, select_block_type: 1]
@@ -53,7 +54,7 @@ defmodule BlockScoutWeb.API.V2.BlockController do
   end
 
   def utxoblock(conn, %{"block_hash_or_number" => block_hash_or_number}) do
-    with {:ok, type, value} <- parse_block_hash_or_number_param(block_hash_or_number),
+    with {:ok, type, value} <- parse_utxoblock_hash_or_number_param(block_hash_or_number),
          {:ok, block} <- fetch_utxoblock(type, value, @block_params) do
       conn
       |> put_status(200)
@@ -126,7 +127,7 @@ defmodule BlockScoutWeb.API.V2.BlockController do
   end
 
   def utxotransactions(conn, %{"block_hash_or_number" => block_hash_or_number} = params) do
-    with {:ok, type, value} <- parse_block_hash_or_number_param(block_hash_or_number),
+    with {:ok, type, value} <- parse_utxoblock_hash_or_number_param(block_hash_or_number),
          {:ok, block} <- fetch_utxoblock(type, value, @api_true) do
       full_options =
         @transaction_necessity_by_association

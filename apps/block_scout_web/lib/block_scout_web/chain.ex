@@ -629,4 +629,15 @@ defmodule BlockScoutWeb.Chain do
         {:error, {:invalid, :number}}
     end
   end
+
+  def parse_utxoblock_hash_or_number_param(hash) when is_binary(hash) do
+    case param_to_block_number(hash) do
+      {:ok, number} ->
+        {:ok, :number, number}
+
+      {:error, :invalid} ->
+        {:ok, :hash, hash}
+    end
+  end
+
 end

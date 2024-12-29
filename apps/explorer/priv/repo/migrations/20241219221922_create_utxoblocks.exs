@@ -5,7 +5,7 @@ defmodule Explorer.Repo.Migrations.CreateUTXOBlocks do
     create table(:utxoblocks, primary_key: false) do
       add(:txsvalid, :boolean, null: false)
       add(:difficulty, :numeric, precision: 50)
-      add(:confirms, :numeric, precision: 50)
+      add(:confirms, :integer)
       add(:hash, :bytea, null: false, primary_key: true)
       add(:miner_hash, :bytea, null: false)
       add(:coinbase, :numeric, null: false)

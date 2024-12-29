@@ -1650,11 +1650,11 @@ defmodule Explorer.Chain do
     end
   end
   def hash_to_utxoblock(hash, options \\ []) when is_list(options) do
-    necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+    # necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
 
     UTXOBlock
     |> where(hash: ^hash)
-    |> join_associations(necessity_by_association)
+    # |> join_associations(necessity_by_association)
     |> select_repo(options).one()
     |> case do
       nil ->
