@@ -24,6 +24,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
       fetch_and_import_range: 2,
       qng_fetch_and_import_range: 2
     ]
+
   import Explorer.Chain.UTXOBlock, only: [fetch_min_max: 0]
   alias Ecto.Changeset
   alias EthereumJSONRPC.{FetchedBalances, Subscription}
@@ -117,6 +118,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
          timer: new_timer
      }}
   end
+
   def subtract_from_number(number, subtrahend) when is_number(number) and is_number(subtrahend) do
     number - subtrahend
   end
@@ -124,6 +126,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
   def subtract_from_number(_, _) do
     {:error, "Both arguments must be numbers"}
   end
+
   @impl GenServer
   def handle_info(
         :poll_latest_block_number,
@@ -146,21 +149,25 @@ defmodule Indexer.Block.Realtime.Fetcher do
           end
 
         _ ->
-            previous_number
+          previous_number
       end
-      case fetch_min_max() do
-          %{min: nil, max: nil} ->
-                min = 0
-                range = min..100
-                :timer.tc(fn -> qng_fetch_and_import_range(block_fetcher, range) end)
 
-          %{min: min, max: max} ->
-              min = max+1 #
-              max = min + 100
-              range = min..max
-              :timer.tc(fn -> qng_fetch_and_import_range(block_fetcher, range) end)
-        _ ->
-      end
+    case fetch_min_max() do
+      %{min: nil, max: nil} ->
+        min = 0
+        range = min..100
+        :timer.tc(fn -> qng_fetch_and_import_range(block_fetcher, range) end)
+
+      %{min: min, max: max} ->
+        #
+        min = max + 1
+        max = min + 100
+        range = min..max
+        :timer.tc(fn -> qng_fetch_and_import_range(block_fetcher, range) end)
+
+      _ ->
+        nil
+    end
 
     timer = schedule_polling()
 
@@ -281,7 +288,10 @@ defmodule Indexer.Block.Realtime.Fetcher do
 
     for block_number_to_fetch <- start_at..number do
       args = [block_number_to_fetch, block_fetcher, is_reorg]
-      Task.Supervisor.start_child(TaskSupervisor, __MODULE__, :qng_fetch_and_import_block, args, shutdown: @shutdown_after)
+
+      Task.Supervisor.start_child(TaskSupervisor, __MODULE__, :qng_fetch_and_import_block, args,
+        shutdown: @shutdown_after
+      )
     end
   end
 
@@ -333,7 +343,11 @@ defmodule Indexer.Block.Realtime.Fetcher do
     )
   end
 
-  @decorate trace(name: "fetch", resource: "Indexer.Block.Realtime.Fetcher.qng_fetch_and_import_block/3", tracer: Tracer)
+  @decorate trace(
+              name: "fetch",
+              resource: "Indexer.Block.Realtime.Fetcher.qng_fetch_and_import_block/3",
+              tracer: Tracer
+            )
   def qng_fetch_and_import_block(block_number_to_fetch, block_fetcher, reorg?, retry \\ 3) do
     Process.flag(:trap_exit, true)
     qng_do_fetch_and_import_block(block_number_to_fetch, block_fetcher, retry)

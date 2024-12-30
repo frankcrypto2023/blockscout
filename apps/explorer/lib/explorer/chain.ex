@@ -634,13 +634,15 @@ defmodule Explorer.Chain do
     )
   end
 
-  def where_utxoblock_number_in_period(base_query, from_block, to_block) when is_nil(from_block) and not is_nil(to_block) do
+  def where_utxoblock_number_in_period(base_query, from_block, to_block)
+      when is_nil(from_block) and not is_nil(to_block) do
     from(q in base_query,
       where: q.blockorder <= ^to_block
     )
   end
 
-  def where_utxoblock_number_in_period(base_query, from_block, to_block) when not is_nil(from_block) and is_nil(to_block) do
+  def where_utxoblock_number_in_period(base_query, from_block, to_block)
+      when not is_nil(from_block) and is_nil(to_block) do
     from(q in base_query,
       where: q.blockorder > ^from_block
     )
@@ -885,6 +887,7 @@ defmodule Explorer.Chain do
             Enum.map(&1, fn tx -> preload_token_transfers(tx, @token_transfers_necessity_by_association, options) end)
         )).()
   end
+
   def block_to_utxotransactions(block_hash, options \\ [], old_ui? \\ true) when is_list(options) do
     necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
 
@@ -1649,6 +1652,7 @@ defmodule Explorer.Chain do
         {:ok, block}
     end
   end
+
   def hash_to_utxoblock(hash, options \\ []) when is_list(options) do
     # necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
 
@@ -1664,6 +1668,7 @@ defmodule Explorer.Chain do
         {:ok, block}
     end
   end
+
   @doc """
   Converts the `Explorer.Chain.Hash.t:t/0` to `iodata` representation that can be written efficiently to users.
 
@@ -1738,7 +1743,7 @@ defmodule Explorer.Chain do
     end
   end
 
-  def hash_to_utxotransaction(hash,options \\ [])
+  def hash_to_utxotransaction(hash, options \\ [])
       when is_list(options) do
     necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
 
@@ -1754,7 +1759,7 @@ defmodule Explorer.Chain do
     end
   end
 
-  def utxoaddress(addr,options \\ []) do
+  def utxoaddress(addr, options \\ []) do
     UTXOAddress
     |> where(address: ^addr)
     |> select_repo(options).one()
@@ -2076,7 +2081,7 @@ defmodule Explorer.Chain do
     |> select_repo(options).all()
   end
 
-   defp fetch_utxoblocks(paging_options, necessity_by_association, options) do
+  defp fetch_utxoblocks(paging_options, necessity_by_association, options) do
     UTXOBlock
     |> UTXOBlock.block_filter()
     |> page_utxoblocks(paging_options)
@@ -2857,6 +2862,7 @@ defmodule Explorer.Chain do
       block -> {:ok, block}
     end
   end
+
   def number_to_utxoblock(number, options \\ []) when is_list(options) do
     necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
 
@@ -2869,6 +2875,7 @@ defmodule Explorer.Chain do
       block -> {:ok, block}
     end
   end
+
   @spec nonconsensus_block_by_number(Block.block_number(), [api?]) :: {:ok, Block.t()} | {:error, :not_found}
   def nonconsensus_block_by_number(number, options) do
     Block
@@ -3158,6 +3165,7 @@ defmodule Explorer.Chain do
     |> (&if(old_ui?, do: preload(&1, [{:token_transfers, [:token, :from_address, :to_address]}]), else: &1)).()
     |> select_repo(options).all()
   end
+
   def recent_pending_utxotransactions(options \\ [], old_ui? \\ true)
       when is_list(options) do
     necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
@@ -3174,6 +3182,7 @@ defmodule Explorer.Chain do
     |> order_by([transaction], desc: transaction.inserted_at, asc: transaction.hash)
     |> select_repo(options).all()
   end
+
   def pending_transactions_query(query) do
     from(transaction in query,
       where: is_nil(transaction.block_hash) and (is_nil(transaction.error) or transaction.error != "dropped/replaced")
@@ -4135,12 +4144,14 @@ defmodule Explorer.Chain do
     |> where_block_number_in_period(from_block, to_block)
     |> handle_paging_options(paging_options)
   end
+
   defp fetch_utxotransactions(paging_options \\ nil, from_block \\ nil, to_block \\ nil, with_pending? \\ false) do
     UTXOTransaction
     |> order_for_utxotransactions(with_pending?)
     |> where_utxoblock_number_in_period(from_block, to_block)
     |> handle_paging_options(paging_options)
   end
+
   defp order_for_transactions(query, true) do
     query
     |> order_by([transaction],

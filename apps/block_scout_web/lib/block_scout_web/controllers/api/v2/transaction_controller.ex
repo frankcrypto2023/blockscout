@@ -82,11 +82,12 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
   end
 
   def utxotransaction(conn, %{"transaction_hash_param" => transaction_hash_string} = params) do
-     with {:ok, transaction} <- Chain.hash_to_utxotransaction(
-              transaction_hash_string,
-              necessity_by_association: Map.put(@transaction_necessity_by_association, :transaction_actions, :optional),
-              api?: true
-            ) do
+    with {:ok, transaction} <-
+           Chain.hash_to_utxotransaction(
+             transaction_hash_string,
+             necessity_by_association: Map.put(@transaction_necessity_by_association, :transaction_actions, :optional),
+             api?: true
+           ) do
       conn
       |> put_status(200)
       |> render(:utxotransaction, %{transaction: transaction})

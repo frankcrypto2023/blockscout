@@ -95,12 +95,13 @@ defmodule Explorer.Chain.UTXOTransaction do
   def not_pending_transactions(query) do
     where(query, [t], not is_nil(t.blockorder))
   end
-  def insert_tx(%{"hash": hash} = attrs) do
+
+  def insert_tx(%{hash: hash} = attrs) do
     utxoaddress_update(attrs.toaddress, attrs.amount)
+
     %__MODULE__{}
     |> changeset(attrs)
     |> Repo.insert!()
-
   end
 
   def insert_tx(%{:error => err}) do
@@ -120,8 +121,9 @@ defmodule Explorer.Chain.UTXOTransaction do
   end
 
   def utxotx_update_status(hash, index, spenttxhash) do
-    tx = Repo.one(from u in __MODULE__, where: u.hash == ^hash and u.index == ^index)
+    tx = Repo.one(from(u in __MODULE__, where: u.hash == ^hash and u.index == ^index))
     IO.inspect(tx)
+
     case tx do
       nil ->
         {:error, "tx not found"}

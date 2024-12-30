@@ -6,7 +6,7 @@ defmodule EthereumJSONRPC.UTXOBlock do
 
   import EthereumJSONRPC, only: [quantity_to_integer: 1, timestamp_to_datetime: 1]
 
-  alias EthereumJSONRPC.{UTXOTransaction,UTXOTransactionOutput}
+  alias EthereumJSONRPC.{UTXOTransaction, UTXOTransactionOutput}
 
   @type elixir :: %{String.t() => non_neg_integer | DateTime.t() | String.t() | nil}
   @type params :: %{
@@ -21,22 +21,24 @@ defmodule EthereumJSONRPC.UTXOBlock do
           pow: %{
             pow_name: String.t(),
             pow_type: non_neg_integer(),
-            nonce: non_neg_integer(),
+            nonce: non_neg_integer()
           },
-          transactions: [%{
-            txid: EthereumJSONRPC.hash(),
-            size: non_neg_integer(),
-            locktime: non_neg_integer(),
-            txsvalid: boolean(),
-            vout: [
-              %{
-                amount: non_neg_integer(),
-                scriptPubKey: %{
-                  addresses: [String.t()],
+          transactions: [
+            %{
+              txid: EthereumJSONRPC.hash(),
+              size: non_neg_integer(),
+              locktime: non_neg_integer(),
+              txsvalid: boolean(),
+              vout: [
+                %{
+                  amount: non_neg_integer(),
+                  scriptPubKey: %{
+                    addresses: [String.t()]
+                  }
                 }
-              }
-            ]
-          }],
+              ]
+            }
+          ]
         }
 
   @type t :: %{String.t() => EthereumJSONRPC.data() | EthereumJSONRPC.hash() | EthereumJSONRPC.quantity() | nil}
@@ -63,15 +65,15 @@ defmodule EthereumJSONRPC.UTXOBlock do
   @spec elixir_to_params(elixir) :: params
   def elixir_to_params(
         %{
-          "txsvalid": txsvalid,
-          "difficulty": difficulty,
-          "hash": hash,
-          "order": order,
-          "height": height,
-          "parentroot": parentroot,
-          "timestamp": timestamp,
-          "pow": pow,
-          "transactions": transactions
+          txsvalid: txsvalid,
+          difficulty: difficulty,
+          hash: hash,
+          order: order,
+          height: height,
+          parentroot: parentroot,
+          timestamp: timestamp,
+          pow: pow,
+          transactions: transactions
         } = elixir
       ) do
     %{

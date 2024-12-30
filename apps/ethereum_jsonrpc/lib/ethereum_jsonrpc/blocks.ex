@@ -4,7 +4,7 @@ defmodule EthereumJSONRPC.Blocks do
   and [`eth_getBlockByNumber`](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbynumber) from batch requests.
   """
   require Logger
-  alias EthereumJSONRPC.{Block,UTXOBlock, Transactions, Transport, Uncles, Withdrawals}
+  alias EthereumJSONRPC.{Block, UTXOBlock, Transactions, Transport, Uncles, Withdrawals}
 
   @type elixir :: [Block.elixir()]
   @type params :: [Block.params()]
@@ -161,6 +161,7 @@ defmodule EthereumJSONRPC.Blocks do
   def utxo_elixir_to_params(elixir) when is_list(elixir) do
     elixir
   end
+
   @doc """
   Extracts the `t:EthereumJSONRPC.Transactions.elixir/0` from the `t:elixir/0`.
 

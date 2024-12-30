@@ -9,6 +9,7 @@ defmodule Explorer.Chain.UTXOAddress do
 
   alias Ecto.Changeset
   alias Explorer.Repo
+
   alias Explorer.Chain.{
     Address,
     Block,
@@ -45,7 +46,7 @@ defmodule Explorer.Chain.UTXOAddress do
           address: String.t(),
           available: Decimal.t(),
           unavailable: Decimal.t(),
-          spent: Decimal.t(),
+          spent: Decimal.t()
         }
 
   @primary_key {:address, :string, autogenerate: false}
@@ -79,7 +80,7 @@ defmodule Explorer.Chain.UTXOAddress do
   end
 
   def utxoaddress_update(address, amount) do
-    addr = Repo.one(from u in __MODULE__, where: u.address == ^address)
+    addr = Repo.one(from(u in __MODULE__, where: u.address == ^address))
 
     case addr do
       nil ->
@@ -89,6 +90,7 @@ defmodule Explorer.Chain.UTXOAddress do
           unavailable: 0,
           spent: 0
         }
+
         %__MODULE__{}
         |> changeset(attrs)
         |> Repo.insert!()

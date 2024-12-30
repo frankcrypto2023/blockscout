@@ -639,5 +639,4 @@ defmodule BlockScoutWeb.Chain do
         {:ok, :hash, hash}
     end
   end
-
 end

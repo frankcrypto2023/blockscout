@@ -128,5 +128,4 @@ defmodule BlockScoutWeb.API.UTXO.AddressView do
         nil
     end
   end
-
 end

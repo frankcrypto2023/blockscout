@@ -181,7 +181,6 @@ defmodule BlockScoutWeb.ApiRouter do
     scope "/utxoaddresses" do
       get("/:address_hash_param", V2.AddressController, :utxoaddress)
       get("/:address_hash_param/transactions", V2.AddressController, :utxotransactions)
-
     end
 
     scope "/tokens" do

@@ -7,7 +7,7 @@ defmodule Explorer.Chain.UTXOBlock do
 
   use Explorer.Schema
 
-  alias Explorer.Chain.{ Hash, }
+  alias Explorer.Chain.{Hash}
   alias Explorer.Repo
   @optional_attrs ~w(difficulty confirms)a
 
@@ -88,7 +88,9 @@ defmodule Explorer.Chain.UTXOBlock do
     |> validate_required([:number])
     |> unique_constraint(:hash, name: :utxoblocks_pkey)
   end
+
   def block_filter(query), do: where(query, [utxoblock], utxoblock.blockorder >= 0)
+
   def insert_block(attrs) do
     %__MODULE__{}
     |> changeset(attrs)

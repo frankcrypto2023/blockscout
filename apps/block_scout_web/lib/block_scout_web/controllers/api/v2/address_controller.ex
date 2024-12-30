@@ -71,10 +71,11 @@ defmodule BlockScoutWeb.API.V2.AddressController do
   end
 
   def utxoaddress(conn, %{"address_hash_param" => address_hash_string} = params) do
-    addrinfo = Chain.utxoaddress(address_hash_string,[])
-      conn
-      |> put_status(200)
-      |> render(:utxoaddress, %{addrinfo: addrinfo})
+    addrinfo = Chain.utxoaddress(address_hash_string, [])
+
+    conn
+    |> put_status(200)
+    |> render(:utxoaddress, %{addrinfo: addrinfo})
   end
 
   def counters(conn, %{"address_hash_param" => address_hash_string} = params) do
@@ -141,15 +142,15 @@ defmodule BlockScoutWeb.API.V2.AddressController do
     #     |> Keyword.merge(paging_options(params))
     #     |> Keyword.merge(current_filter(params))
 
-      results_plus_one = Chain.address_to_utxotransactions(address_hash_string, [], false)
-      {transactions, next_page} = split_list_by_page(results_plus_one)
+    results_plus_one = Chain.address_to_utxotransactions(address_hash_string, [], false)
+    {transactions, next_page} = split_list_by_page(results_plus_one)
 
-      next_page_params = next_page |> next_page_params(transactions, delete_parameters_from_next_page_params(params))
+    next_page_params = next_page |> next_page_params(transactions, delete_parameters_from_next_page_params(params))
 
-      conn
-      |> put_status(200)
-      |> put_view(TransactionView)
-      |> render(:utxotransactions, %{transactions: transactions, next_page_params: next_page_params})
+    conn
+    |> put_status(200)
+    |> put_view(TransactionView)
+    |> render(:utxotransactions, %{transactions: transactions, next_page_params: next_page_params})
   end
 
   def token_transfers(

@@ -584,7 +584,7 @@ defmodule EthereumJSONRPC do
     end
   end
 
-   defp qng_fetch_blocks_by_params(params, request, json_rpc_named_arguments)
+  defp qng_fetch_blocks_by_params(params, request, json_rpc_named_arguments)
        when is_list(params) and is_function(request, 1) do
     id_to_params = id_to_params(params)
 

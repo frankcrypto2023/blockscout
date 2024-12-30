@@ -8,7 +8,7 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
   alias BlockScoutWeb.TransactionStateView
   alias Ecto.Association.NotLoaded
   alias Explorer.{Chain, Market}
-  alias Explorer.Chain.{Address, Block,UTXOTransaction, InternalTransaction, Log, Token, Transaction, Wei}
+  alias Explorer.Chain.{Address, Block, UTXOTransaction, InternalTransaction, Log, Token, Transaction, Wei}
   alias Explorer.Chain.Block.Reward
   alias Explorer.Chain.Transaction.StateChange
   alias Explorer.Counters.AverageBlockTime
@@ -72,6 +72,7 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
 
   def render("utxotransactions.json", %{transactions: transactions, next_page_params: next_page_params, conn: conn}) do
     block_height = Chain.utxoblock_order(@api_true)
+
     %{
       "items" =>
         transactions
@@ -366,7 +367,7 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
       "txindex" => tx.txindex,
       "toaddress" => tx.toaddress,
       "spenttxhash" => tx.spenttxhash,
-      "amount" => tx.amount,
+      "amount" => tx.amount
     }
   end
 

@@ -8,7 +8,6 @@ defmodule Explorer.Repo.Migrations.CreateUTXOAddressBalance do
       add(:unavailable, :numeric, precision: 100, null: false)
       add(:spent, :numeric, precision: 100, null: false)
       timestamps(null: false, type: :utc_datetime_usec)
-
     end
 
     create(unique_index(:utxoaddressbalance, [:address]))

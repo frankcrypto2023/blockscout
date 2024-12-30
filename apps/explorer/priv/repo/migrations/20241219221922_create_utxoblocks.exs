@@ -15,7 +15,8 @@ defmodule Explorer.Repo.Migrations.CreateUTXOBlocks do
       add(:blockorder, :bigint, null: false)
       add(:txns, :bigint, null: false)
       add(:powname, :bytea, null: false)
-      add(:status, :numeric) # 0 = pending, 1 = valid, 2 = invalid
+      # 0 = pending, 1 = valid, 2 = invalid
+      add(:status, :numeric)
       # not a foreign key to allow skipped blocks
       add(:parent_root, :bytea, null: false)
 
