@@ -1,7 +1,7 @@
-defmodule BlockScoutWeb.API.UTXO.TransactionView do
+defmodule BlockScoutWeb.API.Qitmeer.TransactionView do
   use BlockScoutWeb, :view
 
-  alias BlockScoutWeb.API.UTXO.{ApiView, Helper}
+  alias BlockScoutWeb.API.Qitmeer.{ApiView, Helper}
   alias BlockScoutWeb.{ABIEncodedValueView, TransactionView}
   alias BlockScoutWeb.Models.GetTransactionTags
   alias BlockScoutWeb.Tokens.Helper, as: TokensHelper

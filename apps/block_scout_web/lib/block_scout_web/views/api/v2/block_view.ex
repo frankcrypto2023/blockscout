@@ -11,8 +11,8 @@ defmodule BlockScoutWeb.API.V2.BlockView do
     ApiView.render("message.json", assigns)
   end
 
-  def render("utxoblocks.json", %{blocks: blocks, next_page_params: next_page_params}) do
-    %{"items" => Enum.map(blocks, &prepare_utxoblock(&1, nil)), "next_page_params" => next_page_params}
+  def render("qitmeer_blocks.json", %{blocks: blocks, next_page_params: next_page_params}) do
+    %{"items" => Enum.map(blocks, &prepare_qitmeer_block(&1, nil)), "next_page_params" => next_page_params}
   end
 
   def render("blocks.json", %{blocks: blocks, next_page_params: next_page_params}) do
@@ -27,8 +27,8 @@ defmodule BlockScoutWeb.API.V2.BlockView do
     prepare_block(block, conn, true)
   end
 
-  def render("utxoblock.json", %{block: block, conn: conn}) do
-    prepare_utxoblock(block, conn, true)
+  def render("qitmeer_block.json", %{block: block, conn: conn}) do
+    prepare_qitmeer_block(block, conn, true)
   end
 
   def render("block.json", %{block: block, socket: _socket}) do
@@ -71,9 +71,9 @@ defmodule BlockScoutWeb.API.V2.BlockView do
     }
   end
 
-  def prepare_utxoblock(block, _conn, single_block? \\ false) do
+  def prepare_qitmeer_block(block, _conn, single_block? \\ false) do
     %{
-      "blockorder" => block.blockorder,
+      "block_order" => block.block_order,
       "height" => block.height,
       "timestamp" => block.timestamp,
       "tx_count" => block.txns,
@@ -81,8 +81,8 @@ defmodule BlockScoutWeb.API.V2.BlockView do
       "hash" => block.hash,
       "parent_root" => block.parent_root,
       "difficulty" => block.difficulty,
-      "powname" => block.powname,
-      "txsvalid" => block.txsvalid,
+      "pow_name" => block.pow_name,
+      "txs_valid" => block.txs_valid,
       "nonce" => block.nonce,
       "confirms" => block.confirms,
       "weight" => block.weight

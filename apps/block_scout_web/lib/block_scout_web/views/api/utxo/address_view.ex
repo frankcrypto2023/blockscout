@@ -1,11 +1,11 @@
-defmodule BlockScoutWeb.API.UTXO.AddressView do
+defmodule BlockScoutWeb.API.Qitmeer.AddressView do
   use BlockScoutWeb, :view
 
   import BlockScoutWeb.Account.AuthController, only: [current_user: 1]
 
   alias BlockScoutWeb.AddressView
-  alias BlockScoutWeb.API.UTXO.{ApiView, Helper}
-  alias BlockScoutWeb.API.UTXO.Helper
+  alias BlockScoutWeb.API.Qitmeer.{ApiView, Helper}
+  alias BlockScoutWeb.API.Qitmeer.Helper
   alias Explorer.{Chain, Market}
   alias Explorer.Chain.Address.Counters
   alias Explorer.Chain.{Address, SmartContract}

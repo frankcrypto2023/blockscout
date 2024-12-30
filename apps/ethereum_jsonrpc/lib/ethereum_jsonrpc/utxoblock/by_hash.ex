@@ -1,4 +1,4 @@
-defmodule EthereumJSONRPC.UTXOBlock.ByHash do
+defmodule EthereumJSONRPC.QitmeerBlock.ByHash do
   @moduledoc """
   Block format as returned by [`qng_getBlock`]
   """

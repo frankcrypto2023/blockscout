@@ -20,8 +20,8 @@ defmodule BlockScoutWeb.API.V2.AddressView do
     prepare_address(address, conn)
   end
 
-  def render("utxoaddress.json", %{addrinfo: addrinfo, conn: conn}) do
-    prepare_utxoaddress(addrinfo)
+  def render("qitmeer_address.json", %{addr_info: addr_info, conn: conn}) do
+    prepare_qitmeer_address(addr_info)
   end
 
   def render("token_balances.json", %{token_balances: token_balances}) do
@@ -58,12 +58,12 @@ defmodule BlockScoutWeb.API.V2.AddressView do
     }
   end
 
-  def prepare_utxoaddress(addrinfo) do
+  def prepare_qitmeer_address(addr_info) do
     %{
-      "address" => addrinfo.address,
-      "available" => addrinfo.available,
-      "spent" => addrinfo.spent,
-      "unavailable" => addrinfo.unavailable
+      "address" => addr_info.address,
+      "available" => addr_info.available,
+      "spent" => addr_info.spent,
+      "unavailable" => addr_info.unavailable
     }
   end
 

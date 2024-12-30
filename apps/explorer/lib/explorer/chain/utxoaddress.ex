@@ -1,4 +1,4 @@
-defmodule Explorer.Chain.UTXOAddress do
+defmodule Explorer.Chain.QitmeerAddress do
   @moduledoc """
   A stored representation of a web3 address.
   """
@@ -23,11 +23,6 @@ defmodule Explorer.Chain.UTXOAddress do
   @allowed_attrs @optional_attrs ++ @required_attrs
 
   @typedoc """
-  Hash of the public key for this address.
-  """
-  @type hash :: Hash.t()
-
-  @typedoc """
    * `fetched_coin_balance` - The last fetched balance from Nethermind
    * `fetched_coin_balance_block_number` - the `t:Explorer.Chain.Block.t/0` `t:Explorer.Chain.Block.block_number/0` for
      which `fetched_coin_balance` was fetched
@@ -50,7 +45,7 @@ defmodule Explorer.Chain.UTXOAddress do
         }
 
   @primary_key {:address, :string, autogenerate: false}
-  schema "utxoaddressbalance" do
+  schema "qitmeer_address_balance" do
     field(:available, :decimal)
     field(:unavailable, :decimal)
     field(:spent, :decimal)
@@ -79,7 +74,7 @@ defmodule Explorer.Chain.UTXOAddress do
     |> unique_constraint(:address)
   end
 
-  def utxoaddress_update(address, amount) do
+  def qitmeer_address_update(address, amount) do
     addr = Repo.one(from(u in __MODULE__, where: u.address == ^address))
 
     case addr do

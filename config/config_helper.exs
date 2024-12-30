@@ -3,7 +3,6 @@ defmodule ConfigHelper do
   alias Explorer.ExchangeRates.Source
   alias Explorer.Market.History.Source.{MarketCap, Price}
   alias Indexer.Transform.Blocks
-
   @spec hackney_options() :: any()
   def hackney_options() do
     basic_auth_user = System.get_env("ETHEREUM_JSONRPC_USER", "")

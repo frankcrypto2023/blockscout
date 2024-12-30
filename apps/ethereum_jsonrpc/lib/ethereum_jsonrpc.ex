@@ -29,8 +29,7 @@ defmodule EthereumJSONRPC do
 
   alias EthereumJSONRPC.{
     Block,
-    UTXOBlocks,
-    UTXOBlock,
+    QitmeerBlock,
     Blocks,
     Contract,
     FetchedBalances,
@@ -273,7 +272,7 @@ defmodule EthereumJSONRPC do
   def qng_fetch_blocks_by_range(_first.._last = range, json_rpc_named_arguments) do
     range
     |> Enum.map(fn number -> %{number: number} end)
-    |> qng_fetch_blocks_by_params(&UTXOBlock.ByNumber.request/1, json_rpc_named_arguments)
+    |> qng_fetch_blocks_by_params(&QitmeerBlock.ByNumber.request/1, json_rpc_named_arguments)
   end
 
   @doc """
@@ -300,7 +299,7 @@ defmodule EthereumJSONRPC do
   @spec qng_fetch_block_latest_order(json_rpc_named_arguments) ::
           {:ok, Blocks.t()}
   def qng_fetch_block_latest_order(json_rpc_named_arguments) do
-    UTXOBlock.BlockCount.request(json_rpc_named_arguments)
+    QitmeerBlock.BlockCount.request(json_rpc_named_arguments)
   end
 
   @doc """
@@ -343,8 +342,6 @@ defmodule EthereumJSONRPC do
     |> Block.ByTag.number_from_result()
   end
 
-  @spec qng_fetch_latest_block_number(json_rpc_named_arguments) ::
-          {:ok, non_neg_integer()} | {:error, reason :: :invalid_tag | :not_found | term()}
   def qng_fetch_latest_block_number(json_rpc_named_arguments) do
     qng_fetch_block_latest_order(json_rpc_named_arguments)
   end
@@ -592,7 +589,7 @@ defmodule EthereumJSONRPC do
            id_to_params
            |> Blocks.requests(request)
            |> json_rpc(json_rpc_named_arguments) do
-      {:ok, Blocks.utxo_from_responses(responses, id_to_params)}
+      {:ok, Blocks.qitmeer_from_responses(responses, id_to_params)}
     end
   end
 

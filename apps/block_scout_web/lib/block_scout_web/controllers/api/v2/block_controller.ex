@@ -8,7 +8,7 @@ defmodule BlockScoutWeb.API.V2.BlockController do
       put_key_value_to_paging_options: 3,
       split_list_by_page: 1,
       parse_block_hash_or_number_param: 1,
-      parse_utxoblock_hash_or_number_param: 1
+      parse_qitmeer_block_hash_or_number_param: 1
     ]
 
   import BlockScoutWeb.PagingHelper, only: [delete_parameters_from_next_page_params: 1, select_block_type: 1]
@@ -53,12 +53,12 @@ defmodule BlockScoutWeb.API.V2.BlockController do
     end
   end
 
-  def utxoblock(conn, %{"block_hash_or_number" => block_hash_or_number}) do
-    with {:ok, type, value} <- parse_utxoblock_hash_or_number_param(block_hash_or_number),
-         {:ok, block} <- fetch_utxoblock(type, value, @block_params) do
+  def qitmeer_block(conn, %{"block_hash_or_number" => block_hash_or_number}) do
+    with {:ok, type, value} <- parse_qitmeer_block_hash_or_number_param(block_hash_or_number),
+         {:ok, block} <- fetch_qitmeer_block(type, value, @block_params) do
       conn
       |> put_status(200)
-      |> render(:utxoblock, %{block: block})
+      |> render(:qitmeer_block, %{block: block})
     end
   end
 
@@ -76,12 +76,12 @@ defmodule BlockScoutWeb.API.V2.BlockController do
     end
   end
 
-  defp fetch_utxoblock(:hash, hash, params) do
-    Chain.hash_to_utxoblock(hash, params)
+  defp fetch_qitmeer_block(:hash, hash, params) do
+    Chain.hash_to_qitmeer_block(hash, params)
   end
 
-  defp fetch_utxoblock(:number, number, params) do
-    case Chain.number_to_utxoblock(number, params) do
+  defp fetch_qitmeer_block(:number, number, params) do
+    case Chain.number_to_qitmeer_block(number, params) do
       {:ok, _block} = ok_response ->
         ok_response
 
@@ -108,14 +108,14 @@ defmodule BlockScoutWeb.API.V2.BlockController do
     |> render(:blocks, %{blocks: blocks, next_page_params: next_page_params})
   end
 
-  def utxoblocks(conn, params) do
+  def qitmeer_blocks(conn, params) do
     full_options = select_block_type(params)
 
     blocks_plus_one =
       full_options
       |> Keyword.merge(paging_options(params))
       |> Keyword.merge(@api_true)
-      |> Chain.list_utxoblocks()
+      |> Chain.list_qitmeer_blocks()
 
     {blocks, next_page} = split_list_by_page(blocks_plus_one)
 
@@ -123,18 +123,18 @@ defmodule BlockScoutWeb.API.V2.BlockController do
 
     conn
     |> put_status(200)
-    |> render(:utxoblocks, %{blocks: blocks, next_page_params: next_page_params})
+    |> render(:qitmeer_blocks, %{blocks: blocks, next_page_params: next_page_params})
   end
 
-  def utxotransactions(conn, %{"block_hash_or_number" => block_hash_or_number} = params) do
-    with {:ok, type, value} <- parse_utxoblock_hash_or_number_param(block_hash_or_number),
-         {:ok, block} <- fetch_utxoblock(type, value, @api_true) do
+  def qitmeer_transactions(conn, %{"block_hash_or_number" => block_hash_or_number} = params) do
+    with {:ok, type, value} <- parse_qitmeer_block_hash_or_number_param(block_hash_or_number),
+         {:ok, block} <- fetch_qitmeer_block(type, value, @api_true) do
       full_options =
         @transaction_necessity_by_association
         |> Keyword.merge(put_key_value_to_paging_options(paging_options(params), :is_index_in_asc_order, true))
         |> Keyword.merge(@api_true)
 
-      transactions_plus_one = Chain.block_to_utxotransactions(block.hash, full_options, false)
+      transactions_plus_one = Chain.block_to_qitmeer_transactions(block.hash, full_options, false)
 
       {transactions, next_page} = split_list_by_page(transactions_plus_one)
 
@@ -145,7 +145,7 @@ defmodule BlockScoutWeb.API.V2.BlockController do
       conn
       |> put_status(200)
       |> put_view(TransactionView)
-      |> render(:utxotransactions, %{transactions: transactions, next_page_params: next_page_params})
+      |> render(:qitmeer_transactions, %{transactions: transactions, next_page_params: next_page_params})
     end
   end
 

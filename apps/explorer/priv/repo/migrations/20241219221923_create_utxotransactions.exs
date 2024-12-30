@@ -1,24 +1,24 @@
-defmodule Explorer.Repo.Migrations.CreateUTXOTransactions do
+defmodule Explorer.Repo.Migrations.CreateQitmeerTransactions do
   use Ecto.Migration
 
   def change do
-    create table(:utxotransactions, primary_key: false) do
-      add(:block_hash, references(:utxoblocks, column: :hash, on_delete: :delete_all, type: :bytea), null: true)
-      add(:blockorder, :integer, null: true)
+    create table(:qitmeer_transactions, primary_key: false) do
+      add(:block_hash, references(:qitmeer_blocks, column: :hash, on_delete: :delete_all, type: :bytea), null: true)
+      add(:block_order, :integer, null: true)
       # `null` when a pending transaction
       add(:size, :integer, null: true)
-      add(:txindex, :integer, null: true)
+      add(:tx_index, :integer, null: true)
       add(:index, :integer, null: true)
       add(:hash, :bytea, null: false)
 
-      add(:locktime, :integer, null: true)
-      add(:toaddress, :bytea, null: false)
+      add(:lock_time, :integer, null: true)
+      add(:to_address, :bytea, null: false)
       add(:amount, :numeric, precision: 100, null: false)
       add(:fee, :numeric, precision: 100, null: true)
-      add(:txtime, :utc_datetime_usec, null: true)
+      add(:tx_time, :utc_datetime_usec, null: true)
       add(:vin, :bytea, null: false)
-      add(:pkscript, :bytea, null: false)
-      add(:spenttxhash, :bytea, null: true)
+      add(:pk_script, :bytea, null: false)
+      add(:spent_tx_hash, :bytea, null: true)
 
       # `null` when a pending transaction
       add(:status, :integer, null: true)
@@ -31,6 +31,6 @@ defmodule Explorer.Repo.Migrations.CreateUTXOTransactions do
       # denormalized from `blocks.number` to improve `Explorer.Chain.recent_collated_transactions/0` performance
     end
 
-    create(unique_index(:utxotransactions, [:hash, :index]))
+    create(unique_index(:qitmeer_transactions, [:hash, :index]))
   end
 end

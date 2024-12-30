@@ -1,4 +1,4 @@
-defmodule Explorer.Chain.UTXOTransaction do
+defmodule Explorer.Chain.QitmeerTransaction do
   @moduledoc "Models a Web3 transaction."
 
   use Explorer.Schema
@@ -6,7 +6,7 @@ defmodule Explorer.Chain.UTXOTransaction do
   require Logger
   alias Explorer.Repo
   import Ecto.Query, only: [from: 2, preload: 3, subquery: 1, where: 3]
-  import Explorer.Chain.UTXOAddress, only: [utxoaddress_update: 2]
+  import Explorer.Chain.QitmeerAddress, only: [qitmeer_address_update: 2]
   alias Ecto.Changeset
 
   alias Explorer.Chain.{
@@ -15,9 +15,9 @@ defmodule Explorer.Chain.UTXOTransaction do
     Transaction
   }
 
-  @optional_attrs ~w(block_hash blockorder txindex locktime spenttxhash txtime status fee)a
+  @optional_attrs ~w(block_hash block_order tx_index lock_time spent_tx_hash tx_time status fee)a
 
-  @required_attrs ~w(hash index size toaddress amount vin pkscript)a
+  @required_attrs ~w(hash index size to_address amount vin pk_script)a
 
   @typedoc """
   The index of the transaction in its block.
@@ -46,39 +46,39 @@ defmodule Explorer.Chain.UTXOTransaction do
 
   @type t :: %__MODULE__{
           block_hash: String.t() | nil,
-          blockorder: Block.blockorder() | nil,
+          block_order: Block.block_order() | nil,
           size: non_neg_integer(),
-          txindex: non_neg_integer(),
+          tx_index: non_neg_integer(),
           index: non_neg_integer(),
           hash: String.t(),
-          locktime: non_neg_integer() | nil,
-          toaddress: String.t(),
+          lock_time: non_neg_integer() | nil,
+          to_address: String.t(),
           amount: Decimal.t(),
           fee: Decimal.t(),
-          spenttxhash: String.t() | nil,
-          txtime: DateTime.t(),
+          spent_tx_hash: String.t() | nil,
+          tx_time: DateTime.t(),
           vin: String.t(),
-          pkscript: String.t(),
+          pk_script: String.t(),
           status: non_neg_integer()
         }
 
   @primary_key false
   @unique_index [:hash, :index]
-  schema "utxotransactions" do
+  schema "qitmeer_transactions" do
     field(:block_hash, :string)
-    field(:blockorder, :integer)
+    field(:block_order, :integer)
     field(:size, :integer)
-    field(:txindex, :integer)
+    field(:tx_index, :integer)
     field(:index, :integer)
     field(:hash, :string)
-    field(:locktime, :integer)
-    field(:toaddress, :string)
+    field(:lock_time, :integer)
+    field(:to_address, :string)
     field(:amount, :decimal)
     field(:fee, :decimal)
-    field(:spenttxhash, :string)
-    field(:txtime, :utc_datetime_usec)
+    field(:spent_tx_hash, :string)
+    field(:tx_time, :utc_datetime_usec)
     field(:vin, :string)
-    field(:pkscript, :string)
+    field(:pk_script, :string)
     field(:status, :integer)
 
     timestamps()
@@ -93,11 +93,11 @@ defmodule Explorer.Chain.UTXOTransaction do
   end
 
   def not_pending_transactions(query) do
-    where(query, [t], not is_nil(t.blockorder))
+    where(query, [t], not is_nil(t.block_order))
   end
 
   def insert_tx(%{hash: hash} = attrs) do
-    utxoaddress_update(attrs.toaddress, attrs.amount)
+    qitmeer_address_update(attrs.to_address, attrs.amount)
 
     %__MODULE__{}
     |> changeset(attrs)
@@ -111,16 +111,16 @@ defmodule Explorer.Chain.UTXOTransaction do
   @error_message "can't be set when status is not :error"
 
   @doc """
-  Builds an `Ecto.Query` to fetch transactions with the specified blockorder
+  Builds an `Ecto.Query` to fetch transactions with the specified block_order
   """
-  def transactions_with_blockorder(blockorder) do
+  def transactions_with_block_order(block_order) do
     from(
       t in Transaction,
-      where: t.blockorder == ^blockorder
+      where: t.block_order == ^block_order
     )
   end
 
-  def utxotx_update_status(hash, index, spenttxhash) do
+  def qitmeer_tx_update_status(hash, index, spent_tx_hash) do
     tx = Repo.one(from(u in __MODULE__, where: u.hash == ^hash and u.index == ^index))
     IO.inspect(tx)
 
@@ -129,11 +129,11 @@ defmodule Explorer.Chain.UTXOTransaction do
         {:error, "tx not found"}
 
       tx ->
-        changeset = Ecto.Changeset.change(tx, spenttxhash: spenttxhash, status: 1)
+        changeset = Ecto.Changeset.change(tx, spent_tx_hash: spent_tx_hash, status: 1)
 
         case Repo.update(changeset) do
           {:ok, updated_tx} ->
-            utxoaddress_update(tx.toaddress, -tx.amount)
+            qitmeer_address_update(tx.to_address, -tx.amount)
             {:ok, updated_tx}
 
           {:error, changeset} ->

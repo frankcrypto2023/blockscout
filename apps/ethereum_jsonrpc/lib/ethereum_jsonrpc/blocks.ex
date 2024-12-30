@@ -4,7 +4,7 @@ defmodule EthereumJSONRPC.Blocks do
   and [`eth_getBlockByNumber`](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbynumber) from batch requests.
   """
   require Logger
-  alias EthereumJSONRPC.{Block, UTXOBlock, Transactions, Transport, Uncles, Withdrawals}
+  alias EthereumJSONRPC.{Block, QitmeerBlock, Transactions, Transport, Uncles, Withdrawals}
 
   @type elixir :: [Block.elixir()]
   @type params :: [Block.params()]
@@ -64,12 +64,12 @@ defmodule EthereumJSONRPC.Blocks do
     }
   end
 
-  @spec utxo_from_responses(list(), map()) :: t()
-  def utxo_from_responses(responses, id_to_params) when is_list(responses) and is_map(id_to_params) do
+  @spec qitmeer_from_responses(list(), map()) :: t()
+  def qitmeer_from_responses(responses, id_to_params) when is_list(responses) and is_map(id_to_params) do
     %{errors: errors, blocks: blocks} =
       responses
       |> EthereumJSONRPC.sanitize_responses(id_to_params)
-      |> Enum.map(&UTXOBlock.from_response(&1, id_to_params))
+      |> Enum.map(&QitmeerBlock.from_response(&1, id_to_params))
       |> Enum.reduce(%{errors: [], blocks: []}, fn
         {:ok, block}, %{blocks: blocks} = acc ->
           %{acc | blocks: [block | blocks]}
@@ -78,7 +78,7 @@ defmodule EthereumJSONRPC.Blocks do
           %{acc | errors: [error | errors]}
       end)
 
-    elixir_blocks = utxo_to_elixir(blocks)
+    elixir_blocks = qitmeer_to_elixir(blocks)
 
     # elixir_transactions = elixir_to_transactions(elixir_blocks)
     # elixir_withdrawals = elixir_to_withdrawals(elixir_blocks)
@@ -86,7 +86,7 @@ defmodule EthereumJSONRPC.Blocks do
     # block_second_degree_relations_params = Uncles.elixir_to_params(elixir_uncles)
     # transactions_params = Transactions.elixir_to_params(elixir_transactions)
     # withdrawals_params = Withdrawals.elixir_to_params(elixir_withdrawals)
-    blocks_params = utxo_elixir_to_params(elixir_blocks)
+    blocks_params = qitmeer_elixir_to_params(elixir_blocks)
 
     %__MODULE__{
       errors: errors,
@@ -157,8 +157,8 @@ defmodule EthereumJSONRPC.Blocks do
     Enum.map(elixir, &Block.elixir_to_params/1)
   end
 
-  @spec utxo_elixir_to_params(elixir) :: params()
-  def utxo_elixir_to_params(elixir) when is_list(elixir) do
+  @spec qitmeer_elixir_to_params(elixir) :: params()
+  def qitmeer_elixir_to_params(elixir) when is_list(elixir) do
     elixir
   end
 
@@ -480,8 +480,8 @@ defmodule EthereumJSONRPC.Blocks do
     Enum.map(blocks, &Block.to_elixir/1)
   end
 
-  @spec utxo_to_elixir([Block.t()]) :: elixir
-  def utxo_to_elixir(blocks) when is_list(blocks) do
-    Enum.map(blocks, &UTXOBlock.to_elixir/1)
+  @spec qitmeer_to_elixir([Block.t()]) :: elixir
+  def qitmeer_to_elixir(blocks) when is_list(blocks) do
+    Enum.map(blocks, &QitmeerBlock.to_elixir/1)
   end
 end

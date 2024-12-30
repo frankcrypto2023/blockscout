@@ -24,7 +24,7 @@ defmodule BlockScoutWeb.Chain do
     Address.CoinBalance,
     Address.CurrentTokenBalance,
     Block,
-    UTXOBlock,
+    QitmeerBlock,
     Hash,
     InternalTransaction,
     Log,
@@ -35,7 +35,7 @@ defmodule BlockScoutWeb.Chain do
     Transaction,
     Transaction.StateChange,
     Wei,
-    UTXOTransaction,
+    QitmeerTransaction,
     Withdrawal
   }
 
@@ -444,8 +444,8 @@ defmodule BlockScoutWeb.Chain do
     %{"block_number" => number}
   end
 
-  defp paging_params(%UTXOBlock{blockorder: blockorder}) do
-    %{"block_number" => blockorder}
+  defp paging_params(%QitmeerBlock{block_order: block_order}) do
+    %{"block_number" => block_order}
   end
 
   defp paging_params(%InternalTransaction{index: index, transaction_hash: transaction_hash}) do
@@ -461,7 +461,7 @@ defmodule BlockScoutWeb.Chain do
     %{"inserted_at" => DateTime.to_iso8601(inserted_at), "hash" => hash}
   end
 
-  defp paging_params(%UTXOTransaction{blockorder: nil, inserted_at: inserted_at, hash: hash}) do
+  defp paging_params(%QitmeerTransaction{block_order: nil, inserted_at: inserted_at, hash: hash}) do
     %{"inserted_at" => DateTime.to_iso8601(inserted_at), "hash" => hash}
   end
 
@@ -469,8 +469,8 @@ defmodule BlockScoutWeb.Chain do
     %{"block_number" => block_number, "index" => index}
   end
 
-  defp paging_params(%UTXOTransaction{blockorder: block_number, txindex: index}) do
-    %{"blockorder" => block_number, "txindex" => index}
+  defp paging_params(%QitmeerTransaction{block_order: block_number, tx_index: index}) do
+    %{"block_order" => block_number, "tx_index" => index}
   end
 
   defp paging_params(%TokenTransfer{block_number: block_number, log_index: index}) do
@@ -630,7 +630,7 @@ defmodule BlockScoutWeb.Chain do
     end
   end
 
-  def parse_utxoblock_hash_or_number_param(hash) when is_binary(hash) do
+  def parse_qitmeer_block_hash_or_number_param(hash) when is_binary(hash) do
     case param_to_block_number(hash) do
       {:ok, number} ->
         {:ok, :number, number}

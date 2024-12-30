@@ -238,7 +238,7 @@
 - [#7890](https://github.com/blockscout/blockscout/pull/7890), [#7918](https://github.com/blockscout/blockscout/pull/7918) - Resolve warning: Application.get_env/2 is discouraged in the module body, use Application.compile_env/3 instead
 - [#7863](https://github.com/blockscout/blockscout/pull/7863) - Add max_age for account sessions
 - [#7841](https://github.com/blockscout/blockscout/pull/7841) - CORS setup for docker-compose config with new frontend
-- [#7832](https://github.com/blockscout/blockscout/pull/7832), [#7891](https://github.com/blockscout/blockscout/pull/7891) - API v2: Add block_number, block_hash to logs
+- [#7832](https://github.com/blockscout/blockscout/pull/7832), [#7891](https://github.com/blockscout/blockscout/pull/7891) - API v2: Add block_number, blockhash to logs
 - [#7789](https://github.com/blockscout/blockscout/pull/7789) - Fix test warnings; Fix name of `MICROSERVICE_ETH_BYTECODE_DB_INTERVAL_BETWEEN_LOOKUPS` env variable
 - [#7819](https://github.com/blockscout/blockscout/pull/7819) - Add logging for unknown error verification result
 - [#7781](https://github.com/blockscout/blockscout/pull/7781) - Add `/api/v1/health/liveness` and `/api/v1/health/readiness`
@@ -604,7 +604,7 @@
 
 ### Chore
 
-- [#7147](https://github.com/blockscout/blockscout/pull/7147) - Add missing GAS_PRICE_ORACLE_ vars to Makefile
+- [#7147](https://github.com/blockscout/blockscout/pull/7147) - Add missing GAS*PRICE_ORACLE* vars to Makefile
 - [#7144](https://github.com/blockscout/blockscout/pull/7144) - Update Blockscout logo
 - [#7136](https://github.com/blockscout/blockscout/pull/7136) - Add release link or commit hash to docker images
 - [#7097](https://github.com/blockscout/blockscout/pull/7097) - Force display token instance page
@@ -1130,7 +1130,7 @@
 - [#5921](https://github.com/blockscout/blockscout/pull/5921) - Bump briefly from 25942fb to 1dd66ee
 - [#6033](https://github.com/blockscout/blockscout/pull/6033) - Bump sass from 1.54.7 to 1.54.8 in /apps/block_scout_web/assets
 - [#6046](https://github.com/blockscout/blockscout/pull/6046) - Bump credo from 1.6.6 to 1.6.7
-- [#6045](https://github.com/blockscout/blockscout/pull/6045) - Re-use _btn_copy.html for raw trace page
+- [#6045](https://github.com/blockscout/blockscout/pull/6045) - Re-use \_btn_copy.html for raw trace page
 - [#6035](https://github.com/blockscout/blockscout/pull/6035) - Hide copy btn if no raw trace
 - [#6034](https://github.com/blockscout/blockscout/pull/6034) - Suppress empty sections in supported chain dropdown
 - [#5939](https://github.com/blockscout/blockscout/pull/5939) - Bump sweetalert2 from 11.4.26 to 11.4.27 in /apps/block_scout_web/assets
@@ -2095,7 +2095,7 @@
 - [#3190](https://github.com/blockscout/blockscout/pull/3190) - Contract log/method decoded view improvements: eliminate horizontal scroll, remove excess borders, whitespaces
 - [#3185](https://github.com/blockscout/blockscout/pull/3185) - Transaction page: decoding logs from nested contracts calls
 - [#3182](https://github.com/blockscout/blockscout/pull/3182) - Besu: support revertReason key in eth_getTransactionReceipt endpoint
-- [#3178](https://github.com/blockscout/blockscout/pull/3178) - Fix permanent fetching tokens...  when read/write proxy tab is active
+- [#3178](https://github.com/blockscout/blockscout/pull/3178) - Fix permanent fetching tokens... when read/write proxy tab is active
 - [#3178](https://github.com/blockscout/blockscout/pull/3178) - Fix unavailable navbar menu when read/write proxy tab is active
 
 ### Chore
@@ -2144,7 +2144,7 @@
 
 ### Features
 
-- [#3125](https://github.com/blockscout/blockscout/pull/3125)  - Availability to configure a number of days to consider at coin balance history chart via environment variable
+- [#3125](https://github.com/blockscout/blockscout/pull/3125) - Availability to configure a number of days to consider at coin balance history chart via environment variable
 
 ### Fixes
 
@@ -2260,7 +2260,7 @@
 
 ### Features
 
-- [#2835](https://github.com/blockscout/blockscout/pull/2835), [#2871](https://github.com/blockscout/blockscout/pull/2871), [#2872](https://github.com/blockscout/blockscout/pull/2872), [#2886](https://github.com/blockscout/blockscout/pull/2886), [#2925](https://github.com/blockscout/blockscout/pull/2925), [#2936](https://github.com/blockscout/blockscout/pull/2936), [#2949](https://github.com/blockscout/blockscout/pull/2949), [#2940](https://github.com/blockscout/blockscout/pull/2940), [#2958](https://github.com/blockscout/blockscout/pull/2958) - Add "block_hash" to logs, token_transfers and internal transactions and "pending blocks operations" approach
+- [#2835](https://github.com/blockscout/blockscout/pull/2835), [#2871](https://github.com/blockscout/blockscout/pull/2871), [#2872](https://github.com/blockscout/blockscout/pull/2872), [#2886](https://github.com/blockscout/blockscout/pull/2886), [#2925](https://github.com/blockscout/blockscout/pull/2925), [#2936](https://github.com/blockscout/blockscout/pull/2936), [#2949](https://github.com/blockscout/blockscout/pull/2949), [#2940](https://github.com/blockscout/blockscout/pull/2940), [#2958](https://github.com/blockscout/blockscout/pull/2958) - Add "blockhash" to logs, token_transfers and internal transactions and "pending blocks operations" approach
 - [#2975](https://github.com/blockscout/blockscout/pull/2975) - Refine UX of contracts verification
 - [#2926](https://github.com/blockscout/blockscout/pull/2926) - API endpoint: sum balances except burnt address
 - [#2918](https://github.com/blockscout/blockscout/pull/2918) - Add tokenID for tokentx API action explicitly
@@ -2388,7 +2388,7 @@
 - [#2746](https://github.com/blockscout/blockscout/pull/2746) - fixed wrong alignment in logs decoded view
 - [#2745](https://github.com/blockscout/blockscout/pull/2745) - optimize addresses page
 - [#2742](https://github.com/blockscout/blockscout/pull/2742) -
-fixed menu hovers in dark mode desktop view
+  fixed menu hovers in dark mode desktop view
 - [#2737](https://github.com/blockscout/blockscout/pull/2737) - switched hardcoded subnetwork value to elixir expression for mobile menu
 - [#2736](https://github.com/blockscout/blockscout/pull/2736) - do not update cache if no blocks were inserted
 - [#2731](https://github.com/blockscout/blockscout/pull/2731) - fix library verification
@@ -2692,7 +2692,7 @@ fixed menu hovers in dark mode desktop view
 
 - [#2044](https://github.com/blockscout/blockscout/pull/2044) - New network selector.
 - [#2091](https://github.com/blockscout/blockscout/pull/2091) - Added "Question" modal.
-- [#1963](https://github.com/blockscout/blockscout/pull/1963), [#1959](https://github.com/blockscout/blockscout/pull/1959), [#1948](https://github.com/blockscout/blockscout/pull/1948), [#1936](https://github.com/blockscout/blockscout/pull/1936), [#1925](https://github.com/blockscout/blockscout/pull/1925), [#1922](https://github.com/blockscout/blockscout/pull/1922), [#1903](https://github.com/blockscout/blockscout/pull/1903), [#1874](https://github.com/blockscout/blockscout/pull/1874), [#1895](https://github.com/blockscout/blockscout/pull/1895), [#2031](https://github.com/blockscout/blockscout/pull/2031), [#2073](https://github.com/blockscout/blockscout/pull/2073), [#2074](https://github.com/blockscout/blockscout/pull/2074),  - added new themes and logos for poa, eth, rinkeby, goerli, ropsten, kovan, sokol, xdai, etc, rsk and default theme
+- [#1963](https://github.com/blockscout/blockscout/pull/1963), [#1959](https://github.com/blockscout/blockscout/pull/1959), [#1948](https://github.com/blockscout/blockscout/pull/1948), [#1936](https://github.com/blockscout/blockscout/pull/1936), [#1925](https://github.com/blockscout/blockscout/pull/1925), [#1922](https://github.com/blockscout/blockscout/pull/1922), [#1903](https://github.com/blockscout/blockscout/pull/1903), [#1874](https://github.com/blockscout/blockscout/pull/1874), [#1895](https://github.com/blockscout/blockscout/pull/1895), [#2031](https://github.com/blockscout/blockscout/pull/2031), [#2073](https://github.com/blockscout/blockscout/pull/2073), [#2074](https://github.com/blockscout/blockscout/pull/2074), - added new themes and logos for poa, eth, rinkeby, goerli, ropsten, kovan, sokol, xdai, etc, rsk and default theme
 - [#1726](https://github.com/blockscout/blockscout/pull/2071) - Updated styles for the new smart contract page.
 - [#2081](https://github.com/blockscout/blockscout/pull/2081) - Tooltip for 'more' button, explorers logos added
 - [#2010](https://github.com/blockscout/blockscout/pull/2010) - added "block not found" and "tx not found pages"

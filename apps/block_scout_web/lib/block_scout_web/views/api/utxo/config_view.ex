@@ -1,4 +1,4 @@
-defmodule BlockScoutWeb.API.UTXO.ConfigView do
+defmodule BlockScoutWeb.API.Qitmeer.ConfigView do
   def render("json_rpc_url.json", %{url: url}) do
     %{
       "json_rpc_url" => url

@@ -81,16 +81,16 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
     end
   end
 
-  def utxotransaction(conn, %{"transaction_hash_param" => transaction_hash_string} = params) do
+  def qitmeer_transaction(conn, %{"transaction_hash_param" => transaction_hash_string} = params) do
     with {:ok, transaction} <-
-           Chain.hash_to_utxotransaction(
+           Chain.hash_to_qitmeer_transaction(
              transaction_hash_string,
              necessity_by_association: Map.put(@transaction_necessity_by_association, :transaction_actions, :optional),
              api?: true
            ) do
       conn
       |> put_status(200)
-      |> render(:utxotransaction, %{transaction: transaction})
+      |> render(:qitmeer_transaction, %{transaction: transaction})
     end
   end
 
@@ -117,7 +117,7 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
     |> render(:transactions, %{transactions: transactions, next_page_params: next_page_params})
   end
 
-  def utxotransactions(conn, params) do
+  def qitmeer_transactions(conn, params) do
     filter_options = filter_options(params, :validated)
 
     full_options =
@@ -129,7 +129,7 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
       |> Keyword.merge(type_filter_options(params))
       |> Keyword.merge(@api_true)
 
-    transactions_plus_one = Chain.recent_utxotransactions(full_options, filter_options)
+    transactions_plus_one = Chain.recent_qitmeer_transactions(full_options, filter_options)
 
     {transactions, next_page} = split_list_by_page(transactions_plus_one)
 
@@ -137,7 +137,7 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
 
     conn
     |> put_status(200)
-    |> render(:utxotransactions, %{transactions: transactions, next_page_params: next_page_params})
+    |> render(:qitmeer_transactions, %{transactions: transactions, next_page_params: next_page_params})
   end
 
   def raw_trace(conn, %{"transaction_hash_param" => transaction_hash_string} = params) do

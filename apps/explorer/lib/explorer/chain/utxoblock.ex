@@ -1,4 +1,4 @@
-defmodule Explorer.Chain.UTXOBlock do
+defmodule Explorer.Chain.QitmeerBlock do
   @moduledoc """
   A package of data that contains zero or more transactions, the hash of the previous block ("parent"), and optionally
   other data. Because each block (except for the initial "genesis block") points to the previous block, the data
@@ -11,7 +11,7 @@ defmodule Explorer.Chain.UTXOBlock do
   alias Explorer.Repo
   @optional_attrs ~w(difficulty confirms)a
 
-  @required_attrs ~w(txsvalid hash miner_hash nonce blockorder height parent_root timestamp weight powname txns coinbase)a
+  @required_attrs ~w(txs_valid hash miner_hash nonce block_order height parent_root timestamp weight pow_name txns coinbase)a
 
   @typedoc """
   How much work is required to find a hash with some number of leading 0s.  It is measured in hashes for PoW
@@ -26,7 +26,7 @@ defmodule Explorer.Chain.UTXOBlock do
   @type block_number :: non_neg_integer()
 
   @typedoc """
-   * `txsvalid`
+   * `txs_valid`
      * `true` - this is a block which txs are valid
      * `false` - this is block which txs are invalid, maybe red block
    * `difficulty` - how hard the block was to mine.
@@ -35,41 +35,41 @@ defmodule Explorer.Chain.UTXOBlock do
    * `nonce` - the hash of the generated proof-of-work.  Not used in Proof-of-Authority chains.
    * `number` - which block this is along the chain.
    * `parent_root` - the hash of the parent block, which should have the previous `number`
-   * `powname` - the name of the pow
+   * `pow_name` - the name of the pow
    * `timestamp` - When the block was collated
    * `txns` - the transactions count in this block.
   """
   @type t :: %__MODULE__{
-          txsvalid: boolean(),
+          txs_valid: boolean(),
           difficulty: difficulty(),
           hash: String.t(),
           miner_hash: String.t(),
           nonce: non_neg_integer(),
-          blockorder: block_number(),
+          block_order: block_number(),
           height: block_number(),
           weight: block_number(),
           parent_root: String.t(),
           timestamp: DateTime.t(),
-          powname: String.t(),
+          pow_name: String.t(),
           txns: non_neg_integer(),
           coinbase: difficulty(),
           confirms: non_neg_integer()
         }
 
   @primary_key {:hash, :string, autogenerate: false}
-  schema "utxoblocks" do
+  schema "qitmeer_blocks" do
     field(:difficulty, :decimal)
     field(:miner_hash, :string)
     field(:nonce, Hash.Nonce)
-    field(:blockorder, :integer)
+    field(:block_order, :integer)
     field(:height, :integer)
     field(:weight, :integer)
     field(:timestamp, :utc_datetime_usec)
     field(:parent_root, :string)
-    field(:powname, :string)
+    field(:pow_name, :string)
     field(:txns, :integer)
     field(:coinbase, :decimal)
-    field(:txsvalid, :boolean)
+    field(:txs_valid, :boolean)
     field(:confirms, :integer)
 
     timestamps()
@@ -79,17 +79,17 @@ defmodule Explorer.Chain.UTXOBlock do
     block
     |> cast(attrs, @required_attrs ++ @optional_attrs)
     |> validate_required(@required_attrs)
-    |> unique_constraint(:hash, name: :utxoblocks_pkey)
+    |> unique_constraint(:hash, name: :qitmeer_blocks_pkey)
   end
 
   def number_only_changeset(%__MODULE__{} = block, attrs) do
     block
     |> cast(attrs, @required_attrs ++ @optional_attrs)
     |> validate_required([:number])
-    |> unique_constraint(:hash, name: :utxoblocks_pkey)
+    |> unique_constraint(:hash, name: :qitmeer_blocks_pkey)
   end
 
-  def block_filter(query), do: where(query, [utxoblock], utxoblock.blockorder >= 0)
+  def block_filter(query), do: where(query, [qitmeer_block], qitmeer_block.block_order >= 0)
 
   def insert_block(attrs) do
     %__MODULE__{}
@@ -98,7 +98,7 @@ defmodule Explorer.Chain.UTXOBlock do
   end
 
   def min_max_block_query do
-    from(r in __MODULE__, select: %{min: min(r.blockorder), max: max(r.blockorder)})
+    from(r in __MODULE__, select: %{min: min(r.block_order), max: max(r.block_order)})
   end
 
   def fetch_min_max do

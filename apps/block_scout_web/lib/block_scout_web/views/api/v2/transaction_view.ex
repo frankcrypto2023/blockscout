@@ -8,7 +8,7 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
   alias BlockScoutWeb.TransactionStateView
   alias Ecto.Association.NotLoaded
   alias Explorer.{Chain, Market}
-  alias Explorer.Chain.{Address, Block, UTXOTransaction, InternalTransaction, Log, Token, Transaction, Wei}
+  alias Explorer.Chain.{Address, Block, QitmeerTransaction, InternalTransaction, Log, Token, Transaction, Wei}
   alias Explorer.Chain.Block.Reward
   alias Explorer.Chain.Transaction.StateChange
   alias Explorer.Counters.AverageBlockTime
@@ -70,13 +70,13 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
     }
   end
 
-  def render("utxotransactions.json", %{transactions: transactions, next_page_params: next_page_params, conn: conn}) do
-    block_height = Chain.utxoblock_order(@api_true)
+  def render("qitmeer_transactions.json", %{transactions: transactions, next_page_params: next_page_params, conn: conn}) do
+    block_height = Chain.qitmeer_block_order(@api_true)
 
     %{
       "items" =>
         transactions
-        |> Enum.map(fn tx -> prepare_utxotransaction(tx, conn, false, block_height) end),
+        |> Enum.map(fn tx -> prepare_qitmeer_transaction(tx, conn, false, block_height) end),
       "next_page_params" => next_page_params
     }
   end
@@ -96,9 +96,9 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
     prepare_transaction(transaction, conn, true, block_height, decoded_input)
   end
 
-  def render("utxotransaction.json", %{transaction: transaction, conn: conn}) do
+  def render("qitmeer_transaction.json", %{transaction: transaction, conn: conn}) do
     block_height = Chain.block_height(@api_true)
-    prepare_utxotransaction(transaction, conn, true, block_height)
+    prepare_qitmeer_transaction(transaction, conn, true, block_height)
   end
 
   def render("raw_trace.json", %{internal_transactions: internal_transactions}) do
@@ -350,23 +350,23 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
     }
   end
 
-  defp prepare_utxotransaction(tx, conn, single_tx?, block_height)
+  defp prepare_qitmeer_transaction(tx, conn, single_tx?, block_height)
 
-  defp prepare_utxotransaction(
-         %UTXOTransaction{} = tx,
+  defp prepare_qitmeer_transaction(
+         %QitmeerTransaction{} = tx,
          conn,
          single_tx?,
          _block_height
        ) do
     %{
       "block_hash" => tx.block_hash,
-      "blockorder" => tx.blockorder,
+      "block_order" => tx.block_order,
       "hash" => tx.hash,
-      "txtime" => tx.txtime,
+      "tx_time" => tx.tx_time,
       "size" => tx.size,
-      "txindex" => tx.txindex,
-      "toaddress" => tx.toaddress,
-      "spenttxhash" => tx.spenttxhash,
+      "tx_index" => tx.tx_index,
+      "to_address" => tx.to_address,
+      "spent_tx_hash" => tx.spent_tx_hash,
       "amount" => tx.amount
     }
   end

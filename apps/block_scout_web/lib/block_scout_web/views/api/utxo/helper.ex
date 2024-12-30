@@ -1,6 +1,6 @@
-defmodule BlockScoutWeb.API.UTXO.Helper do
+defmodule BlockScoutWeb.API.Qitmeer.Helper do
   @moduledoc """
-    API UTXO helper
+    API Qitmeer helper
   """
 
   alias Ecto.Association.NotLoaded

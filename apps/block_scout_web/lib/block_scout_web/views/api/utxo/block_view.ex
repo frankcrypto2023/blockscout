@@ -1,8 +1,8 @@
-defmodule BlockScoutWeb.API.UTXO.BlockView do
+defmodule BlockScoutWeb.API.Qitmeer.BlockView do
   use BlockScoutWeb, :view
 
   alias BlockScoutWeb.BlockView
-  alias BlockScoutWeb.API.UTXO.{ApiView, Helper}
+  alias BlockScoutWeb.API.Qitmeer.{ApiView, Helper}
   alias Explorer.Chain
   alias Explorer.Chain.Block
   alias Explorer.Counters.BlockPriorityFeeCounter

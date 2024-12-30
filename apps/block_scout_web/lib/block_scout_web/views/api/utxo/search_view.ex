@@ -1,4 +1,4 @@
-defmodule BlockScoutWeb.API.UTXO.SearchView do
+defmodule BlockScoutWeb.API.Qitmeer.SearchView do
   use BlockScoutWeb, :view
 
   alias BlockScoutWeb.Endpoint

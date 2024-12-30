@@ -1,22 +1,14 @@
-defmodule EthereumJSONRPC.UTXOBlock do
-  @moduledoc """
-  Block format as returned by [`eth_getBlockByHash`](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbyhash)
-  and [`eth_getBlockByNumber`](https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getblockbynumber).
-  """
-
-  import EthereumJSONRPC, only: [quantity_to_integer: 1, timestamp_to_datetime: 1]
-
-  alias EthereumJSONRPC.{UTXOTransaction, UTXOTransactionOutput}
+defmodule EthereumJSONRPC.QitmeerBlock do
 
   @type elixir :: %{String.t() => non_neg_integer | DateTime.t() | String.t() | nil}
   @type params :: %{
-          txsvalid: boolean(),
+          txs_valid: boolean(),
           difficulty: pos_integer(),
           hash: EthereumJSONRPC.hash(),
           miner_hash: String.t(),
           order: non_neg_integer(),
           height: non_neg_integer(),
-          parentroot: EthereumJSONRPC.hash(),
+          parent_root: EthereumJSONRPC.hash(),
           timestamp: DateTime.t(),
           pow: %{
             pow_name: String.t(),
@@ -27,9 +19,9 @@ defmodule EthereumJSONRPC.UTXOBlock do
             %{
               txid: EthereumJSONRPC.hash(),
               size: non_neg_integer(),
-              locktime: non_neg_integer(),
-              txsvalid: boolean(),
-              vout: [
+              lock_time: non_neg_integer(),
+              txs_valid: boolean(),
+              out_index: [
                 %{
                   amount: non_neg_integer(),
                   scriptPubKey: %{
@@ -62,36 +54,37 @@ defmodule EthereumJSONRPC.UTXOBlock do
     {:error, annotated_error}
   end
 
-  @spec elixir_to_params(elixir) :: params
   def elixir_to_params(
         %{
-          txsvalid: txsvalid,
+          txs_valid: txs_valid,
           difficulty: difficulty,
           hash: hash,
           order: order,
           height: height,
-          parentroot: parentroot,
+          parent_root: parent_root,
           timestamp: timestamp,
           pow: pow,
           transactions: transactions
-        } = elixir
+        }
       ) do
+      coinbase = transactions |> List.first()
+      out_index = hd(coinbase["vout"])
+      miner = hd(out_index["scriptPubKey"]["addresses"])
     %{
-      txsvalid: txsvalid,
+      txs_valid: txs_valid,
       difficulty: difficulty,
       hash: hash,
-      miner_hash: String.t(),
+      miner_hash: miner,
       nonce: Map.get(pow, "nonce", 0),
       order: order,
       height: height,
-      parentroot: parentroot,
+      parent_root: parent_root,
       timestamp: timestamp,
       pow: pow,
       transactions: transactions
     }
   end
 
-  @spec elixir_to_transactions(elixir) :: Transactions.elixir()
   def elixir_to_transactions(%{"transactions" => transactions}), do: transactions
 
   def elixir_to_transactions(_), do: []

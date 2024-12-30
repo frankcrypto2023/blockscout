@@ -22,10 +22,10 @@ defmodule Indexer.Block.Catchup.Fetcher do
       qng_fetch_and_import_range: 2
     ]
 
-  import Explorer.Chain.UTXOBlock, only: [fetch_min_max: 0]
+  import Explorer.Chain.QitmeerBlock, only: [fetch_min_max: 0]
   alias Ecto.Changeset
   alias Explorer.Chain
-  alias Explorer.Chain.{UTXOBlock}
+  alias Explorer.Chain.{QitmeerBlock}
   alias Explorer.Utility.MissingRangesManipulator
   alias Indexer.{Block, Tracer}
   alias Indexer.Block.Catchup.{Sequence, TaskSupervisor}
@@ -199,7 +199,7 @@ defmodule Indexer.Block.Catchup.Fetcher do
     #   max = min - 1
     #   min = 0
     #   range = min..max
-    #   Logger.info(fn -> "UTXO BLocks Fetching range #{inspect(range)}" end, fetcher: :block_catchup)
+    #   Logger.info(fn -> "Qitmeer BLocks Fetching range #{inspect(range)}" end, fetcher: :block_catchup)
     #   :timer.tc(fn -> qng_fetch_and_import_range_from_sequence(state,range) end)
     # end
 
@@ -268,7 +268,7 @@ defmodule Indexer.Block.Catchup.Fetcher do
         max = min - 1
         min = min - 11
         range = min..max
-        Logger.info(fn -> "UTXO BLocks Fetching range #{inspect(range)}" end, fetcher: :block_catchup)
+        Logger.info(fn -> "Qitmeer BLocks Fetching range #{inspect(range)}" end, fetcher: :block_catchup)
         qng_fetch_and_import_range(block_fetcher, range)
     end
   end

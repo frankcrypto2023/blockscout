@@ -25,7 +25,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
       qng_fetch_and_import_range: 2
     ]
 
-  import Explorer.Chain.UTXOBlock, only: [fetch_min_max: 0]
+  import Explorer.Chain.QitmeerBlock, only: [fetch_min_max: 0]
   alias Ecto.Changeset
   alias EthereumJSONRPC.{FetchedBalances, Subscription}
   alias Explorer.Chain
@@ -51,7 +51,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
   defstruct block_fetcher: nil,
             subscription: nil,
             previous_number: nil,
-            utxo_previous_number: nil,
+            qitmeer_previous_number: nil,
             timer: nil
 
   @type t :: %__MODULE__{
@@ -64,7 +64,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
           },
           subscription: Subscription.t(),
           previous_number: pos_integer() | nil,
-          utxo_previous_number: pos_integer() | nil,
+          qitmeer_previous_number: pos_integer() | nil,
           timer: reference()
         }
 
@@ -93,7 +93,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
           block_fetcher: %Block.Fetcher{} = block_fetcher,
           subscription: %Subscription{} = subscription,
           previous_number: previous_number,
-          utxo_previous_number: utxo_previous_number,
+          qitmeer_previous_number: qitmeer_previous_number,
           timer: timer
         } = state
       )
@@ -133,7 +133,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
         %__MODULE__{
           block_fetcher: %Block.Fetcher{json_rpc_named_arguments: json_rpc_named_arguments} = block_fetcher,
           previous_number: previous_number,
-          utxo_previous_number: utxo_previous_number
+          qitmeer_previous_number: qitmeer_previous_number
         } = state
       ) do
     new_previous_number =
