@@ -29,12 +29,12 @@ defmodule EthereumJSONRPC do
 
   alias EthereumJSONRPC.{
     Block,
-    QitmeerBlock,
     Blocks,
     Contract,
     FetchedBalances,
     FetchedBeneficiaries,
     FetchedCodes,
+    QitmeerBlock,
     Receipts,
     RequestCoordinator,
     Subscription,

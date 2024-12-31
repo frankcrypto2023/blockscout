@@ -1,4 +1,5 @@
 defmodule EthereumJSONRPC.QitmeerBlock do
+  @moduledoc false
   @type elixir :: %{String.t() => non_neg_integer | DateTime.t() | String.t() | nil}
   @type params :: %{
           txs_valid: boolean(),

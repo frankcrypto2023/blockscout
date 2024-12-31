@@ -24,10 +24,11 @@ defmodule BlockScoutWeb.Chain do
     Address.CoinBalance,
     Address.CurrentTokenBalance,
     Block,
-    QitmeerBlock,
     Hash,
     InternalTransaction,
     Log,
+    QitmeerBlock,
+    QitmeerTransaction,
     SmartContract,
     Token,
     Token.Instance,
@@ -35,7 +36,6 @@ defmodule BlockScoutWeb.Chain do
     Transaction,
     Transaction.StateChange,
     Wei,
-    QitmeerTransaction,
     Withdrawal
   }
 

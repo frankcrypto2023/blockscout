@@ -25,7 +25,6 @@ defmodule Indexer.Block.Catchup.Fetcher do
   import Explorer.Chain.QitmeerBlock, only: [fetch_min_max: 0]
   alias Ecto.Changeset
   alias Explorer.Chain
-  alias Explorer.Chain.{QitmeerBlock}
   alias Explorer.Utility.MissingRangesManipulator
   alias Indexer.{Block, Tracer}
   alias Indexer.Block.Catchup.{Sequence, TaskSupervisor}

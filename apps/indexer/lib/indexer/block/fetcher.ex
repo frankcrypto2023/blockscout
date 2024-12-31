@@ -13,7 +13,7 @@ defmodule Indexer.Block.Fetcher do
   import Explorer.Chain.QitmeerAddress, only: [qitmeer_address_update: 2]
   alias EthereumJSONRPC.{Blocks, FetchedBeneficiaries}
   alias Explorer.Chain
-  alias Explorer.Chain.{Address, Block, Hash, Import, Transaction, Wei, QitmeerBlock, QitmeerTransaction}
+  alias Explorer.Chain.{Address, Block, Hash, Import, QitmeerBlock, QitmeerTransaction, Transaction, Wei}
   alias Explorer.Chain.Block.Reward
   alias Explorer.Chain.Cache.Blocks, as: BlocksCache
   alias Explorer.Chain.Cache.{Accounts, BlockNumber, Transactions, Uncles}
@@ -336,17 +336,13 @@ defmodule Indexer.Block.Fetcher do
     {fetch_time, fetched_blocks} =
       :timer.tc(fn -> EthereumJSONRPC.qng_fetch_blocks_by_range(range, json_rpc_named_arguments) end)
 
-    with {:blocks,
-          {:ok,
-           %Blocks{
-             blocks_params: blocks_params
-           }}} <- {:blocks, fetched_blocks} do
-      # IO.inspect(blocks_params)
-      convert_and_save_to_db(blocks_params)
-      convert_and_save_tx_to_db(blocks_params)
-      # blocks_params
-    else
-      _ -> []
+    case fetched_blocks do
+      {:ok, %Blocks{blocks_params: blocks_params}} ->
+        convert_and_save_to_db(blocks_params)
+        convert_and_save_tx_to_db(blocks_params)
+
+      _ ->
+        []
     end
 
     {:ok}

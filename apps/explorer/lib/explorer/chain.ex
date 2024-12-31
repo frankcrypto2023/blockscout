@@ -48,7 +48,6 @@ defmodule Explorer.Chain do
     Address.CurrentTokenBalance,
     Address.TokenBalance,
     Block,
-    QitmeerBlock,
     CurrencyHelper,
     Data,
     DecompiledSmartContract,
@@ -57,6 +56,9 @@ defmodule Explorer.Chain do
     InternalTransaction,
     Log,
     PendingBlockOperation,
+    QitmeerAddress,
+    QitmeerBlock,
+    QitmeerTransaction,
     Search,
     SmartContract,
     SmartContractAdditionalSource,
@@ -64,8 +66,6 @@ defmodule Explorer.Chain do
     Token.Instance,
     TokenTransfer,
     Transaction,
-    QitmeerTransaction,
-    QitmeerAddress,
     Wei,
     Withdrawal
   }

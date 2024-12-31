@@ -7,7 +7,7 @@ defmodule Explorer.Chain.QitmeerBlock do
 
   use Explorer.Schema
 
-  alias Explorer.Chain.{Hash}
+  alias Explorer.Chain.Hash
   alias Explorer.Repo
   @optional_attrs ~w(difficulty confirms)a
 
