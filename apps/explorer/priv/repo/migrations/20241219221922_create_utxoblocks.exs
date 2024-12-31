@@ -27,6 +27,9 @@ defmodule Explorer.Repo.Migrations.CreateQitmeerBlocks do
 
     create(index(:qitmeer_blocks, [:timestamp]))
     create(index(:qitmeer_blocks, [:hash], unique: true, where: ~s(txs_valid), name: :one_txsvalid_child_per_hash))
-    create(index(:qitmeer_blocks, [:block_order], unique: true, where: ~s(txs_valid), name: :one_txsvalid_block_at_order))
+
+    create(
+      index(:qitmeer_blocks, [:block_order], unique: true, where: ~s(txs_valid), name: :one_txsvalid_block_at_order)
+    )
   end
 end

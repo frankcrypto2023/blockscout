@@ -14,7 +14,7 @@ defmodule BlockScoutWeb.Counters.BlocksIndexedCounter do
   # Consider the test environment: if it initiates but does not finish before a
   # test ends, that test will fail.
   config = Application.compile_env(:block_scout_web, __MODULE__)
-  @enabled Keyword.get(config, :enabled)
+  @enabled Keyword.get(config, :enabled, false)
 
   @doc """
   Starts a process to periodically update the % of blocks indexed.

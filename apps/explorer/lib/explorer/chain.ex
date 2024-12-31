@@ -624,7 +624,8 @@ defmodule Explorer.Chain do
     )
   end
 
-  def where_qitmeer_block_number_in_period(base_query, from_block, to_block) when is_nil(from_block) and is_nil(to_block) do
+  def where_qitmeer_block_number_in_period(base_query, from_block, to_block)
+      when is_nil(from_block) and is_nil(to_block) do
     base_query
   end
 
@@ -642,7 +643,8 @@ defmodule Explorer.Chain do
     )
   end
 
-  def where_qitmeer_block_number_in_period(base_query, from_block, to_block) when is_nil(from_block) and is_nil(to_block) do
+  def where_qitmeer_block_number_in_period(base_query, from_block, to_block)
+      when is_nil(from_block) and is_nil(to_block) do
     base_query
   end
 

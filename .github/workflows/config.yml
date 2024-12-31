@@ -21,9 +21,9 @@ on:
 
 env:
   MIX_ENV: test
-  OTP_VERSION: '25.2.1'
-  ELIXIR_VERSION: '1.14.3'
-  ACCOUNT_AUTH0_DOMAIN: 'blockscoutcom.us.auth0.com'
+  OTP_VERSION: "25.2.1"
+  ELIXIR_VERSION: "1.14.3"
+  ACCOUNT_AUTH0_DOMAIN: "blockscoutcom.us.auth0.com"
 
 jobs:
   build-and-cache:
@@ -523,7 +523,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-"
 
-
       - run: ./bin/install_chrome_headless.sh
 
       - name: mix test --exclude no_nethermind
@@ -547,8 +546,8 @@ jobs:
     needs: build-and-cache
     services:
       redis_db:
-        image: 'redis:alpine'
-        ports: 
+        image: "redis:alpine"
+        ports:
           - 6379:6379
 
       postgres:
@@ -586,7 +585,6 @@ jobs:
           key: ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-mixlockhash_22-${{ hashFiles('mix.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ env.ELIXIR_VERSION }}-${{ env.OTP_VERSION }}-${{ env.MIX_ENV }}-deps-"
-
 
       - name: Restore Explorer NPM Cache
         uses: actions/cache@v2

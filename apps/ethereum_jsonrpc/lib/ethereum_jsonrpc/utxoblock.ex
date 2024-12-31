@@ -1,5 +1,4 @@
 defmodule EthereumJSONRPC.QitmeerBlock do
-
   @type elixir :: %{String.t() => non_neg_integer | DateTime.t() | String.t() | nil}
   @type params :: %{
           txs_valid: boolean(),
@@ -54,22 +53,21 @@ defmodule EthereumJSONRPC.QitmeerBlock do
     {:error, annotated_error}
   end
 
-  def elixir_to_params(
-        %{
-          txs_valid: txs_valid,
-          difficulty: difficulty,
-          hash: hash,
-          order: order,
-          height: height,
-          parent_root: parent_root,
-          timestamp: timestamp,
-          pow: pow,
-          transactions: transactions
-        }
-      ) do
-      coinbase = transactions |> List.first()
-      out_index = hd(coinbase["vout"])
-      miner = hd(out_index["scriptPubKey"]["addresses"])
+  def elixir_to_params(%{
+        txs_valid: txs_valid,
+        difficulty: difficulty,
+        hash: hash,
+        order: order,
+        height: height,
+        parent_root: parent_root,
+        timestamp: timestamp,
+        pow: pow,
+        transactions: transactions
+      }) do
+    coinbase = transactions |> List.first()
+    out_index = hd(coinbase["vout"])
+    miner = hd(out_index["scriptPubKey"]["addresses"])
+
     %{
       txs_valid: txs_valid,
       difficulty: difficulty,

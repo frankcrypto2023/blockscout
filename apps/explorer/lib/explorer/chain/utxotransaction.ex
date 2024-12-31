@@ -37,16 +37,9 @@ defmodule Explorer.Chain.QitmeerTransaction do
   **Note: that `29` and `30` are exceedingly rarely, and will in practice only ever be seen in specifically generated
   examples.**
   """
-  @type v :: 27..30
-
-  @typedoc """
-  How much the sender is willing to pay in wei per unit of gas.
-  """
-  @type wei_per_gas :: Wei.t()
-
   @type t :: %__MODULE__{
           block_hash: String.t() | nil,
-          block_order: Block.block_order() | nil,
+          block_order: non_neg_integer() | nil,
           size: non_neg_integer(),
           tx_index: non_neg_integer(),
           index: non_neg_integer(),
@@ -122,7 +115,6 @@ defmodule Explorer.Chain.QitmeerTransaction do
 
   def qitmeer_tx_update_status(hash, index, spent_tx_hash) do
     tx = Repo.one(from(u in __MODULE__, where: u.hash == ^hash and u.index == ^index))
-    IO.inspect(tx)
 
     case tx do
       nil ->
