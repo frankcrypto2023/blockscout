@@ -65,7 +65,13 @@ defmodule Explorer.Market.MarketHistoryCache do
   end
 
   defp fetch_from_cache(key) do
-    ConCache.get(@cache_name, key)
+    try do
+      ConCache.get(@cache_name, key)
+    rescue
+      _e in ArgumentError ->
+        IO.puts("Cache #{@cache_name} does not exist.")
+        nil
+    end
   end
 
   defp put_into_cache(key, value) do
