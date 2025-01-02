@@ -43,6 +43,7 @@ defmodule EthereumJSONRPC do
     Variant
   }
 
+  alias QitmeerBlock.BlockCount
   @default_throttle_timeout :timer.minutes(2)
 
   @typedoc """
@@ -299,7 +300,7 @@ defmodule EthereumJSONRPC do
   @spec qng_fetch_block_latest_order(json_rpc_named_arguments) ::
           {:ok, Blocks.t()}
   def qng_fetch_block_latest_order(json_rpc_named_arguments) do
-    QitmeerBlock.BlockCount.request(json_rpc_named_arguments)
+    BlockCount.request(json_rpc_named_arguments)
   end
 
   @doc """

@@ -1,7 +1,9 @@
 defmodule EthereumJSONRPC.QitmeerBlock.BlockCount do
-  @moduledoc false
   def request(json_rpc_named_arguments) do
-    EthereumJSONRPC.request(%{id: 1, method: "qng_getBlockCount", params: []})
+    request_map = %{id: 1, method: "qng_getBlockCount", params: []}
+
+    request_map
+    |> EthereumJSONRPC.request()
     |> EthereumJSONRPC.json_rpc(json_rpc_named_arguments)
   end
 

@@ -5,6 +5,8 @@ defmodule Explorer.ExchangeRates.Source.CoinMarketCapTest do
 
   describe "source_url/0" do
     test "returns default cmc source url" do
+      Application.put_env(:explorer, :coin, "ETH")
+
       assert "https://pro-api.coinmarketcap.com/v2/cryptocurrency/quotes/latest?symbol=ETH&CMC_PRO_API_KEY=" ==
                CoinMarketCap.source_url()
     end

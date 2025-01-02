@@ -373,7 +373,7 @@ defmodule Explorer.Chain do
     |> Enum.take(paging_options.page_size)
   end
 
-  def address_to_qitmeer_transactions(address_hash, options, old_ui? \\ true) do
+  def address_to_qitmeer_transactions(address_hash, options, _old_ui? \\ true) do
     QitmeerTransaction
     # |> Keyword.get(:paging_options, @default_paging_options)
     |> where([transaction], transaction.to_address == ^address_hash)
@@ -884,8 +884,8 @@ defmodule Explorer.Chain do
         )).()
   end
 
-  def block_to_qitmeer_transactions(block_hash, options \\ [], old_ui? \\ true) when is_list(options) do
-    necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+  def block_to_qitmeer_transactions(block_hash, options \\ [], _old_ui? \\ true) when is_list(options) do
+    # necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
 
     options
     |> Keyword.get(:paging_options, @default_paging_options)
@@ -1741,7 +1741,7 @@ defmodule Explorer.Chain do
 
   def hash_to_qitmeer_transaction(hash, options \\ [])
       when is_list(options) do
-    necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+    # necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
 
     QitmeerTransaction
     |> where(hash: ^hash)
@@ -2077,7 +2077,7 @@ defmodule Explorer.Chain do
     |> select_repo(options).all()
   end
 
-  defp fetch_qitmeer_blocks(paging_options, necessity_by_association, options) do
+  defp fetch_qitmeer_blocks(paging_options, _necessity_by_association, options) do
     QitmeerBlock
     |> QitmeerBlock.block_filter()
     |> page_qitmeer_blocks(paging_options)
@@ -2860,7 +2860,7 @@ defmodule Explorer.Chain do
   end
 
   def number_to_qitmeer_block(number, options \\ []) when is_list(options) do
-    necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+    # necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
 
     QitmeerBlock
     |> where(txs_valid: true, block_order: ^number)
@@ -3003,19 +3003,18 @@ defmodule Explorer.Chain do
     )
   end
 
-  def recent_collated_qitmeer_transactions(old_ui?, options \\ [])
+  def recent_collated_qitmeer_transactions(_old_ui?, options \\ [])
       when is_list(options) do
-    necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+    # necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
     paging_options = Keyword.get(options, :paging_options, @default_paging_options)
-    method_id_filter = Keyword.get(options, :method)
-    type_filter = Keyword.get(options, :type)
+    # method_id_filter = Keyword.get(options, :method)
+    # _type_filter = Keyword.get(options, :type)
 
     fetch_recent_collated_qitmeer_transactions(
-      old_ui?,
       paging_options,
-      necessity_by_association,
-      method_id_filter,
-      type_filter,
+      # necessity_by_association,
+      # method_id_filter,
+      # _type_filter,
       options
     )
   end
@@ -3100,11 +3099,8 @@ defmodule Explorer.Chain do
   end
 
   def fetch_recent_collated_qitmeer_transactions(
-        old_ui?,
+        # old_ui?,
         paging_options,
-        necessity_by_association,
-        method_id_filter,
-        type_filter,
         options
       ) do
     paging_options
@@ -3162,9 +3158,9 @@ defmodule Explorer.Chain do
     |> select_repo(options).all()
   end
 
-  def recent_pending_qitmeer_transactions(options \\ [], old_ui? \\ true)
+  def recent_pending_qitmeer_transactions(options \\ [], _old_ui? \\ true)
       when is_list(options) do
-    necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
+    # necessity_by_association = Keyword.get(options, :necessity_by_association, %{})
     paging_options = Keyword.get(options, :paging_options, @default_paging_options)
     method_id_filter = Keyword.get(options, :method)
     type_filter = Keyword.get(options, :type)
@@ -4141,31 +4137,31 @@ defmodule Explorer.Chain do
     |> handle_paging_options(paging_options)
   end
 
-  defp fetch_qitmeer_transactions(paging_options \\ nil, from_block \\ nil, to_block \\ nil, with_pending? \\ false) do
+  defp fetch_qitmeer_transactions(paging_options, from_block \\ nil, to_block \\ nil, with_pending? \\ false) do
     QitmeerTransaction
     |> order_for_qitmeer_transactions(with_pending?)
     |> where_qitmeer_block_number_in_period(from_block, to_block)
     |> handle_paging_options(paging_options)
   end
 
-  defp order_for_transactions(query, true) do
-    query
-    |> order_by([transaction],
-      desc: transaction.block_number,
-      desc: transaction.index,
-      desc: transaction.inserted_at,
-      asc: transaction.hash
-    )
+  defp order_for_transactions(query, with_pending) do
+    if with_pending do
+      query
+      |> order_by([transaction],
+        desc: transaction.block_number,
+        desc: transaction.index,
+        desc: transaction.inserted_at,
+        asc: transaction.hash
+      )
+    else
+      query
+      |> order_by([transaction], desc: transaction.block_number, desc: transaction.index)
+    end
   end
 
   defp order_for_qitmeer_transactions(query, pending) when not pending do
     query
     |> order_by([transaction], desc: transaction.block_order, desc: transaction.tx_index)
-  end
-
-  defp order_for_transactions(query, _) do
-    query
-    |> order_by([transaction], desc: transaction.block_number, desc: transaction.index)
   end
 
   defp fetch_transactions_in_ascending_order_by_index(paging_options) do

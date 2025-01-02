@@ -5,15 +5,11 @@ defmodule Explorer.Chain.QitmeerTransaction do
 
   require Logger
   alias Explorer.Repo
-  import Ecto.Query, only: [from: 2, preload: 3, subquery: 1, where: 3]
+  import Ecto.Query, only: [from: 2, where: 3]
   import Explorer.Chain.QitmeerAddress, only: [qitmeer_address_update: 2]
   alias Ecto.Changeset
 
-  alias Explorer.Chain.{
-    Block,
-    Hash,
-    Transaction
-  }
+  alias Explorer.Chain.Transaction
 
   @optional_attrs ~w(block_hash block_order tx_index lock_time spent_tx_hash tx_time status fee)a
 
@@ -56,7 +52,6 @@ defmodule Explorer.Chain.QitmeerTransaction do
         }
 
   @primary_key false
-  @unique_index [:hash, :index]
   schema "qitmeer_transactions" do
     field(:block_hash, :string)
     field(:block_order, :integer)
@@ -89,7 +84,7 @@ defmodule Explorer.Chain.QitmeerTransaction do
     where(query, [t], not is_nil(t.block_order))
   end
 
-  def insert_tx(%{hash: hash} = attrs) do
+  def insert_tx(%{hash: _hash} = attrs) do
     qitmeer_address_update(attrs.to_address, attrs.amount)
 
     %__MODULE__{}
@@ -100,8 +95,6 @@ defmodule Explorer.Chain.QitmeerTransaction do
   def insert_tx(%{:error => err}) do
     {:error, err}
   end
-
-  @error_message "can't be set when status is not :error"
 
   @doc """
   Builds an `Ecto.Query` to fetch transactions with the specified block_order
@@ -121,7 +114,7 @@ defmodule Explorer.Chain.QitmeerTransaction do
         {:error, "tx not found"}
 
       tx ->
-        changeset = Ecto.Changeset.change(tx, spent_tx_hash: spent_tx_hash, status: 1)
+        changeset = Changeset.change(tx, spent_tx_hash: spent_tx_hash, status: 1)
 
         case Repo.update(changeset) do
           {:ok, updated_tx} ->

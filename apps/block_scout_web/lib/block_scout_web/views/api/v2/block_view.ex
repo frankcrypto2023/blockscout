@@ -71,7 +71,7 @@ defmodule BlockScoutWeb.API.V2.BlockView do
     }
   end
 
-  def prepare_qitmeer_block(block, _conn, single_block? \\ false) do
+  def prepare_qitmeer_block(block, _conn, _single_block? \\ false) do
     %{
       "block_order" => block.block_order,
       "height" => block.height,

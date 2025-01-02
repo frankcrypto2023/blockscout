@@ -251,6 +251,19 @@ defmodule Indexer.Block.Fetcher do
     |> save_blocks_to_db()
   end
 
+  defp process_vin(vin, tx_data) do
+    case Map.fetch(vin, :txid) do
+      {:ok, txid} ->
+        # 设置 txid 的花费状态
+        qitmeer_tx_update_status(txid, vin["vout"], tx_data["txid"])
+        "#{txid}:#{vin["vout"]}"
+
+      # coinbase 交易
+      :error ->
+        "coinbase:#{vin["coinbase"]}"
+    end
+  end
+
   defp convert_to_qitmeer_transaction_out(out_index, index, tx_index, tx_data, block_order, block_hash) do
     script = out_index["scriptPubKey"]
 
@@ -260,19 +273,7 @@ defmodule Indexer.Block.Fetcher do
 
         vins =
           tx_data["vin"]
-          |> Enum.map(fn vin ->
-            case Map.fetch(vin, :txid) do
-              {:ok, txid} ->
-                # set txid spent status
-                qitmeer_tx_update_status(txid, vin["vout"], tx_data["txid"])
-                "#{txid}:#{vin["vout"]}"
-
-              # coinbase tx
-              :error ->
-                "coinbase:#{vin["coinbase"]}"
-            end
-          end)
-          |> Enum.join(",")
+          |> Enum.map_join(",", &process_vin(&1, tx_data))
 
         # qitmeer_address_update(addr, out_index["amount"])
         %{
@@ -310,8 +311,9 @@ defmodule Indexer.Block.Fetcher do
   defp convert_to_qitmeer_block_transaction(block_data) do
     block_data["transactions"]
     |> Enum.with_index()
-    |> Enum.map(fn {transaction, index} ->
-      convert_to_qitmeer_transaction(transaction, index, block_data["order"], block_data["hash"])
+    |> Enum.each(fn {transaction, index} ->
+      transaction
+      |> convert_to_qitmeer_transaction(index, block_data["order"], block_data["hash"])
       |> save_tx_to_db()
     end)
   end

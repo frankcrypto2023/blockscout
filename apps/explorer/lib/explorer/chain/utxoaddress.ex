@@ -10,14 +10,6 @@ defmodule Explorer.Chain.QitmeerAddress do
   alias Ecto.Changeset
   alias Explorer.Repo
 
-  alias Explorer.Chain.{
-    Address,
-    Block,
-    Data,
-    Transaction
-  }
-
-  alias Explorer.Chain.Cache.NetVersion
   @optional_attrs ~w(spent)a
   @required_attrs ~w(address available unavailable)a
   @allowed_attrs @optional_attrs ++ @required_attrs
@@ -93,7 +85,7 @@ defmodule Explorer.Chain.QitmeerAddress do
       addr ->
         old_amount = Decimal.new(addr.available)
         new_amount = Decimal.new(amount)
-        changeset = Ecto.Changeset.change(addr, available: Decimal.add(old_amount, new_amount))
+        changeset = Changeset.change(addr, available: Decimal.add(old_amount, new_amount))
 
         case Repo.update(changeset) do
           {:ok, updated_tx} ->

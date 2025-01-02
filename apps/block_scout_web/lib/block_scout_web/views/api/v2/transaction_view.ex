@@ -350,27 +350,6 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
     }
   end
 
-  defp prepare_qitmeer_transaction(tx, conn, single_tx?, block_height)
-
-  defp prepare_qitmeer_transaction(
-         %QitmeerTransaction{} = tx,
-         conn,
-         single_tx?,
-         _block_height
-       ) do
-    %{
-      "block_hash" => tx.block_hash,
-      "block_order" => tx.block_order,
-      "hash" => tx.hash,
-      "tx_time" => tx.tx_time,
-      "size" => tx.size,
-      "tx_index" => tx.tx_index,
-      "to_address" => tx.to_address,
-      "spent_tx_hash" => tx.spent_tx_hash,
-      "amount" => tx.amount
-    }
-  end
-
   defp prepare_transaction(%Transaction{} = transaction, conn, single_tx?, block_height, watchlist_names, decoded_input) do
     base_fee_per_gas = transaction.block && transaction.block.base_fee_per_gas
     max_priority_fee_per_gas = transaction.max_priority_fee_per_gas
@@ -442,6 +421,27 @@ defmodule BlockScoutWeb.API.V2.TransactionView do
       "tx_types" => tx_types(transaction),
       "tx_tag" => GetTransactionTags.get_transaction_tags(transaction.hash, current_user(single_tx? && conn)),
       "has_error_in_internal_txs" => transaction.has_error_in_internal_txs
+    }
+  end
+
+  defp prepare_qitmeer_transaction(tx, conn, single_tx?, block_height)
+
+  defp prepare_qitmeer_transaction(
+         %QitmeerTransaction{} = tx,
+         _conn,
+         _single_tx?,
+         _block_height
+       ) do
+    %{
+      "block_hash" => tx.block_hash,
+      "block_order" => tx.block_order,
+      "hash" => tx.hash,
+      "tx_time" => tx.tx_time,
+      "size" => tx.size,
+      "tx_index" => tx.tx_index,
+      "to_address" => tx.to_address,
+      "spent_tx_hash" => tx.spent_tx_hash,
+      "amount" => tx.amount
     }
   end
 
