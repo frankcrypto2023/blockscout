@@ -94,6 +94,22 @@ defmodule Explorer.Counters.AddressesCounter do
   Fetches the info for a specific item from the `:ets` table.
   """
   def fetch do
+    case :ets.info(:my_table) do
+      :undefined ->
+        IO.puts("ETS table does not exist.")
+        0
+
+      _ ->
+        case :ets.lookup(:my_table, cache_key) do
+          [] ->
+            IO.puts("Key #{cache_key} not found in ETD table.")
+            0
+
+          [{^cache_key, value}] ->
+            value
+        end
+    end
+
     do_fetch(:ets.lookup(table_name(), cache_key()))
   end
 
