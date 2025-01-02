@@ -105,7 +105,7 @@ defmodule Explorer.Counters.AddressesCounter do
             IO.puts("Key #{cache_key} not found in ETD table.")
             0
 
-          [{^cache_key, value}] ->
+          [{_, value}] ->
             value
         end
     end
