@@ -238,7 +238,7 @@
 - [#7890](https://github.com/blockscout/blockscout/pull/7890), [#7918](https://github.com/blockscout/blockscout/pull/7918) - Resolve warning: Application.get_env/2 is discouraged in the module body, use Application.compile_env/3 instead
 - [#7863](https://github.com/blockscout/blockscout/pull/7863) - Add max_age for account sessions
 - [#7841](https://github.com/blockscout/blockscout/pull/7841) - CORS setup for docker-compose config with new frontend
-- [#7832](https://github.com/blockscout/blockscout/pull/7832), [#7891](https://github.com/blockscout/blockscout/pull/7891) - API v2: Add block_number, blockhash to logs
+- [#7832](https://github.com/blockscout/blockscout/pull/7832), [#7891](https://github.com/blockscout/blockscout/pull/7891) - API v2: Add block_number, block_hash to logs
 - [#7789](https://github.com/blockscout/blockscout/pull/7789) - Fix test warnings; Fix name of `MICROSERVICE_ETH_BYTECODE_DB_INTERVAL_BETWEEN_LOOKUPS` env variable
 - [#7819](https://github.com/blockscout/blockscout/pull/7819) - Add logging for unknown error verification result
 - [#7781](https://github.com/blockscout/blockscout/pull/7781) - Add `/api/v1/health/liveness` and `/api/v1/health/readiness`
@@ -2260,7 +2260,7 @@
 
 ### Features
 
-- [#2835](https://github.com/blockscout/blockscout/pull/2835), [#2871](https://github.com/blockscout/blockscout/pull/2871), [#2872](https://github.com/blockscout/blockscout/pull/2872), [#2886](https://github.com/blockscout/blockscout/pull/2886), [#2925](https://github.com/blockscout/blockscout/pull/2925), [#2936](https://github.com/blockscout/blockscout/pull/2936), [#2949](https://github.com/blockscout/blockscout/pull/2949), [#2940](https://github.com/blockscout/blockscout/pull/2940), [#2958](https://github.com/blockscout/blockscout/pull/2958) - Add "blockhash" to logs, token_transfers and internal transactions and "pending blocks operations" approach
+- [#2835](https://github.com/blockscout/blockscout/pull/2835), [#2871](https://github.com/blockscout/blockscout/pull/2871), [#2872](https://github.com/blockscout/blockscout/pull/2872), [#2886](https://github.com/blockscout/blockscout/pull/2886), [#2925](https://github.com/blockscout/blockscout/pull/2925), [#2936](https://github.com/blockscout/blockscout/pull/2936), [#2949](https://github.com/blockscout/blockscout/pull/2949), [#2940](https://github.com/blockscout/blockscout/pull/2940), [#2958](https://github.com/blockscout/blockscout/pull/2958) - Add "block_hash" to logs, token_transfers and internal transactions and "pending blocks operations" approach
 - [#2975](https://github.com/blockscout/blockscout/pull/2975) - Refine UX of contracts verification
 - [#2926](https://github.com/blockscout/blockscout/pull/2926) - API endpoint: sum balances except burnt address
 - [#2918](https://github.com/blockscout/blockscout/pull/2918) - Add tokenID for tokentx API action explicitly
@@ -2388,7 +2388,7 @@
 - [#2746](https://github.com/blockscout/blockscout/pull/2746) - fixed wrong alignment in logs decoded view
 - [#2745](https://github.com/blockscout/blockscout/pull/2745) - optimize addresses page
 - [#2742](https://github.com/blockscout/blockscout/pull/2742) -
-  fixed menu hovers in dark mode desktop view
+- fixed menu hovers in dark mode desktop view
 - [#2737](https://github.com/blockscout/blockscout/pull/2737) - switched hardcoded subnetwork value to elixir expression for mobile menu
 - [#2736](https://github.com/blockscout/blockscout/pull/2736) - do not update cache if no blocks were inserted
 - [#2731](https://github.com/blockscout/blockscout/pull/2731) - fix library verification
@@ -2862,7 +2862,7 @@ Reverting of synchronous block counter, implemented in #1848
 - [#1795](https://github.com/blockscout/blockscout/pull/1795) - fix line numbers for decompiled contracts
 - [#1803](https://github.com/blockscout/blockscout/pull/1803) - use coinmarketcap for total_supply by default
 - [#1802](https://github.com/blockscout/blockscout/pull/1802) - make coinmarketcap's number of pages configurable
-- [#1799](https://github.com/blockscout/blockscout/pull/1799) - Use eth_getUncleByBlockHashAndIndex for uncle block fetching
+- [#1799](https://github.com/blockscout/blockscout/pull/1799) - Use eth_getUncleByblock_hashAndIndex for uncle block fetching
 - [#1531](https://github.com/blockscout/blockscout/pull/1531) - docker: fix dockerFile for secp256k1 building
 - [#1835](https://github.com/blockscout/blockscout/pull/1835) - fix: ignore `pong` messages without error
 

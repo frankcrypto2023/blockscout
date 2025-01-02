@@ -56,7 +56,7 @@ defmodule Explorer.ReleaseTasks do
     IO.puts("Starting repos..")
 
     # Switch pool_size to 2 for ecto > 3.0
-    Enum.each(@repos, & &1.start_link(pool_size: 2))
+    Enum.each(@repos, & &1.start_link(pool_size: 20))
   end
 
   defp stop_services do
