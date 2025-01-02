@@ -16,11 +16,7 @@ defmodule Explorer.Market.MarketHistoryCache do
   @recent_days 30
 
   def fetch do
-    if cache_expired?() do
-      update_cache()
-    else
-      fetch_from_cache(@history_key)
-    end
+    fetch_from_db()
   end
 
   def cache_name, do: @cache_name
@@ -45,8 +41,8 @@ defmodule Explorer.Market.MarketHistoryCache do
   defp update_cache do
     new_data = fetch_from_db()
 
-    put_into_cache(@last_update_key, Helper.current_time())
-    put_into_cache(@history_key, new_data)
+    # put_into_cache(@last_update_key, Helper.current_time())
+    # put_into_cache(@history_key, new_data)
 
     new_data
   end

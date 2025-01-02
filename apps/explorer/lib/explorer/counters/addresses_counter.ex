@@ -111,8 +111,8 @@ defmodule Explorer.Counters.AddressesCounter do
     end
   end
 
-  defp do_fetch([{_, result}]), do: result
-  defp do_fetch([]), do: 0
+  # defp do_fetch([{_, result}]), do: result
+  # defp do_fetch([]), do: 0
 
   @doc """
   Consolidates the info by populating the `:ets` table with the current database information.
