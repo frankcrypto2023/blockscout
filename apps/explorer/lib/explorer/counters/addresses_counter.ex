@@ -102,15 +102,13 @@ defmodule Explorer.Counters.AddressesCounter do
       _ ->
         case :ets.lookup(table_name(), cache_key()) do
           [] ->
-            IO.puts("Key #{cache_key} not found in ETD table.")
+            IO.puts("Key #{cache_key()} not found in ETD table.")
             0
 
           [{_, value}] ->
             value
         end
     end
-
-    do_fetch(:ets.lookup(table_name(), cache_key()))
   end
 
   defp do_fetch([{_, result}]), do: result
