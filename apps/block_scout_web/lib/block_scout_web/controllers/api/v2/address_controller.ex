@@ -70,7 +70,7 @@ defmodule BlockScoutWeb.API.V2.AddressController do
     end
   end
 
-  def qitmeer_address(conn, %{"address_hash_param" => address_hash_string} = params) do
+  def qitmeer_address(conn, %{"address_hash_param" => address_hash_string}) do
     addr_info = Chain.qitmeer_address(address_hash_string, [])
 
     conn

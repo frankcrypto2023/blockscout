@@ -81,7 +81,7 @@ defmodule BlockScoutWeb.API.V2.TransactionController do
     end
   end
 
-  def qitmeer_transaction(conn, %{"transaction_hash_param" => transaction_hash_string} = params) do
+  def qitmeer_transaction(conn, %{"transaction_hash_param" => transaction_hash_string}) do
     with {:ok, transaction} <-
            Chain.hash_to_qitmeer_transaction(
              transaction_hash_string,

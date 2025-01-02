@@ -20,7 +20,7 @@ defmodule BlockScoutWeb.API.V2.AddressView do
     prepare_address(address, conn)
   end
 
-  def render("qitmeer_address.json", %{addr_info: addr_info, conn: conn}) do
+  def render("qitmeer_address.json", %{addr_info: addr_info}) do
     prepare_qitmeer_address(addr_info)
   end
 
