@@ -21,6 +21,7 @@ defmodule Explorer.Repo.Migrations.CreateQitmeerBlocks do
       add(:parent_root, :bytea, null: false)
 
       add(:timestamp, :utc_datetime_usec, null: false)
+      add(:insert_catchup, :boolean, null: false)
 
       timestamps(null: false, type: :utc_datetime_usec)
     end

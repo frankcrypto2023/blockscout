@@ -11,7 +11,7 @@ defmodule Explorer.Chain.QitmeerBlock do
   alias Explorer.Repo
   @optional_attrs ~w(difficulty confirms)a
 
-  @required_attrs ~w(txs_valid hash miner_hash nonce block_order height parent_root timestamp weight pow_name txns coinbase)a
+  @required_attrs ~w(txs_valid hash miner_hash nonce block_order height parent_root timestamp weight pow_name txns coinbase insert_catchup)a
 
   @typedoc """
   How much work is required to find a hash with some number of leading 0s.  It is measured in hashes for PoW
@@ -41,6 +41,7 @@ defmodule Explorer.Chain.QitmeerBlock do
   """
   @type t :: %__MODULE__{
           txs_valid: boolean(),
+          insert_catchup: boolean(),
           difficulty: difficulty(),
           hash: String.t(),
           miner_hash: String.t(),
@@ -70,6 +71,7 @@ defmodule Explorer.Chain.QitmeerBlock do
     field(:txns, :integer)
     field(:coinbase, :decimal)
     field(:txs_valid, :boolean)
+    field(:insert_catchup, :boolean)
     field(:confirms, :integer)
 
     timestamps()
@@ -98,7 +100,7 @@ defmodule Explorer.Chain.QitmeerBlock do
   end
 
   def min_max_block_query do
-    from(r in __MODULE__, select: %{min: min(r.block_order), max: max(r.block_order)})
+    from(r in __MODULE__, select: %{min: min(r.block_order), max: max(r.block_order)}, where: r.insert_catchup == true)
   end
 
   def fetch_min_max do

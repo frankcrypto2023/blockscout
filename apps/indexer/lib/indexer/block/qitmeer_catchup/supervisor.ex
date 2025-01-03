@@ -5,6 +5,7 @@ defmodule Indexer.Block.QitmeerCatchup.Supervisor do
 
   use Supervisor
   alias Indexer.Block.QitmeerCatchup.BoundIntervalSupervisor
+
   def child_spec([init_arguments]) do
     child_spec([init_arguments, []])
   end

@@ -217,7 +217,7 @@ defmodule Indexer.Block.Fetcher do
     end
   end
 
-  defp convert_to_qitmeer_block(block_data) do
+  defp convert_to_qitmeer_block(block_data, insert_catchup) do
     coinbase = block_data["transactions"] |> List.first()
     out_index = hd(coinbase["vout"])
     script = out_index["scriptPubKey"]
@@ -236,7 +236,8 @@ defmodule Indexer.Block.Fetcher do
       difficulty: block_data["difficulty"],
       txns: length(block_data["transactions"]),
       coinbase: out_index["amount"],
-      confirms: block_data["confirmations"]
+      confirms: block_data["confirmations"],
+      insert_catchup: insert_catchup
     }
   end
 
@@ -244,9 +245,9 @@ defmodule Indexer.Block.Fetcher do
     Enum.each(blocks, &insert_block/1)
   end
 
-  def convert_and_save_to_db(block_list) do
+  def convert_and_save_to_db(block_list, insert_catchup) do
     block_list
-    |> Enum.map(&convert_to_qitmeer_block/1)
+    |> Enum.map(fn block -> convert_to_qitmeer_block(block, insert_catchup) end)
     |> save_blocks_to_db()
   end
 
@@ -263,8 +264,8 @@ defmodule Indexer.Block.Fetcher do
     end
   end
 
-  defp convert_to_qitmeer_transaction_out(out_index, index, tx_index, tx_data, block_order, block_hash) do
-    script = out_index["scriptPubKey"]
+  defp convert_to_qitmeer_transaction_out(out, index, tx_index, tx_data, block_order, block_hash) do
+    script = out["scriptPubKey"]
 
     case Map.fetch(script, "addresses") do
       {:ok, _} ->
@@ -283,11 +284,11 @@ defmodule Indexer.Block.Fetcher do
           hash: tx_data["txid"],
           lock_time: tx_data["locktime"],
           to_address: addr,
-          amount: out_index["amount"],
+          amount: out["amount"],
           fee: 0,
           tx_time: tx_data["timestamp"],
           vin: vins,
-          pk_script: out_index["scriptPubKey"]["hex"],
+          pk_script: out["scriptPubKey"]["hex"],
           status: 1
         }
 
@@ -301,8 +302,8 @@ defmodule Indexer.Block.Fetcher do
   defp convert_to_qitmeer_transaction(tx_data, tx_index, block_order, block_hash) do
     tx_data["vout"]
     |> Enum.with_index()
-    |> Enum.map(fn {out_index, index} ->
-      convert_to_qitmeer_transaction_out(out_index, index, tx_index, tx_data, block_order, block_hash)
+    |> Enum.map(fn {out, index} ->
+      convert_to_qitmeer_transaction_out(out, index, tx_index, tx_data, block_order, block_hash)
     end)
   end
 
@@ -331,14 +332,15 @@ defmodule Indexer.Block.Fetcher do
           callback_module: _callback_module,
           json_rpc_named_arguments: json_rpc_named_arguments
         },
-        _.._ = range
+        _.._ = range,
+        insert_catchup
       ) do
     {_, fetched_blocks} =
       :timer.tc(fn -> EthereumJSONRPC.qng_fetch_blocks_by_range(range, json_rpc_named_arguments) end)
 
     case fetched_blocks do
       {:ok, %Blocks{blocks_params: blocks_params}} ->
-        convert_and_save_to_db(blocks_params)
+        convert_and_save_to_db(blocks_params, insert_catchup)
         convert_and_save_tx_to_db(blocks_params)
 
       _ ->

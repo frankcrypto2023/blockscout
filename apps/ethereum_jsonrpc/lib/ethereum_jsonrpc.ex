@@ -293,7 +293,6 @@ defmodule EthereumJSONRPC do
   @spec fetch_block_by_tag(tag(), json_rpc_named_arguments) ::
           {:ok, Blocks.t()} | {:error, reason :: :invalid_tag | :not_found | term()}
   def fetch_block_by_tag(tag, json_rpc_named_arguments) when tag in ~w(earliest latest pending) do
-    # qng_fetch_block_stateroot(json_rpc_named_arguments)
     [%{tag: tag}]
     |> fetch_blocks_by_params(&Block.ByTag.request/1, json_rpc_named_arguments)
   end
@@ -301,11 +300,9 @@ defmodule EthereumJSONRPC do
   @spec qng_fetch_block_stateroot(json_rpc_named_arguments) ::
           {:ok, Blocks.t()}
   def qng_fetch_block_stateroot(json_rpc_named_arguments) do
-    IO.inspect("=-------------------------------------------------------------------------------")
-    r = %{id: 1, jsonrpc: "2.0", method: "net_version", params: []}
-    |> json_rpc(json_rpc_named_arguments)
-    # IO.inspect(r)
-    IO.inspect("=-------------------------------------------------------------------------------end")
+      %{id: 1}
+      |> StateRoot.request()
+      |> json_rpc(json_rpc_named_arguments)
   end
 
   @doc """
@@ -348,7 +345,7 @@ defmodule EthereumJSONRPC do
     |> Block.ByTag.number_from_result()
   end
 
-  def fetch_block_number_by_statroot(json_rpc_named_arguments) do
+  def fetch_block_number_by_stateroot(json_rpc_named_arguments) do
     json_rpc_named_arguments
     |> qng_fetch_block_stateroot()
     |> StateRoot.number_from_result()

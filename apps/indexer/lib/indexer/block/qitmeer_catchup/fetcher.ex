@@ -9,16 +9,13 @@ defmodule Indexer.Block.QitmeerCatchup.Fetcher do
 
   import Indexer.Block.Fetcher,
     only: [
-      qng_fetch_and_import_range: 2
+      qng_fetch_and_import_range: 3
     ]
 
   import Explorer.Chain.QitmeerBlock, only: [fetch_min_max: 0]
   alias Indexer.Block
-  alias Indexer.Block.QitmeerCatchup.TaskSupervisor
 
   @behaviour Block.Fetcher
-
-  @shutdown_after :timer.minutes(5)
 
   defstruct block_fetcher: nil,
             memory_monitor: nil
@@ -37,41 +34,26 @@ defmodule Indexer.Block.QitmeerCatchup.Fetcher do
   """
   def task(state) do
     Logger.metadata(fetcher: :block_catchup)
-    stream_fetch_and_import(state)
+    fetch_and_import_range_from_min(state)
   end
 
-  defp stream_fetch_and_import(state) do
-    TaskSupervisor
-    |> Task.Supervisor.async_stream(%{}, &fetch_and_import_range_from_min(state, &1),
-      max_concurrency: 1,
-      timeout: :infinity,
-      shutdown: @shutdown_after
-    )
-    |> Stream.run()
-  end
-
-  defp fetch_and_import_range_from_min(%__MODULE__{block_fetcher: %Block.Fetcher{} = block_fetcher} = state, _) do
+  defp fetch_and_import_range_from_min(%__MODULE__{block_fetcher: %Block.Fetcher{} = block_fetcher} = state) do
     case fetch_min_max() do
       %{min: nil, max: nil} ->
         min = 0
         max_value = 100
         range = min..max_value
-        Logger.info(fn -> "Qitmeer Blocks Fetching range #{inspect(range)}" end, fetcher: :block_catchup)
-        :timer.tc(fn -> qng_fetch_and_import_range(block_fetcher, range) end)
+        Logger.info(fn -> "init Qitmeer Blocks Fetching range #{inspect(range)}" end, fetcher: :block_catchup)
+        :timer.tc(fn -> qng_fetch_and_import_range(block_fetcher, range, true) end)
 
-      %{min: min, max: dbmax} ->
-        min = min + 1
+      %{min: _min, max: dbmax} ->
+        min = dbmax + 1
 
-        max_value =
-          if min + 100 < dbmax do
-            min + 100
-          else
-            dbmax
-          end
+        max_value = min + 100
 
         range = min..max_value
         Logger.info(fn -> "Qitmeer Blocks Fetching range #{inspect(range)}" end, fetcher: :block_catchup)
-        :timer.tc(fn -> qng_fetch_and_import_range(block_fetcher, range) end)
+        :timer.tc(fn -> qng_fetch_and_import_range(block_fetcher, range, true) end)
     end
 
     {:ok, state}

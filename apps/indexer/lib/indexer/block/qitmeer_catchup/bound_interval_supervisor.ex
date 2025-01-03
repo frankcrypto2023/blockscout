@@ -18,7 +18,7 @@ defmodule Indexer.Block.QitmeerCatchup.BoundIntervalSupervisor do
         }
 
   # milliseconds
-  @block_interval 5_000
+  @block_interval 1_000
 
   @enforce_keys ~w(bound_interval fetcher)a
   defstruct bound_interval: nil,
@@ -56,9 +56,7 @@ defmodule Indexer.Block.QitmeerCatchup.BoundIntervalSupervisor do
     Logger.metadata(fetcher: :block_catchup)
 
     state = new(named_arguments)
-
     send(self(), :catchup_index)
-
     {:ok, state}
   end
 
@@ -195,7 +193,7 @@ defmodule Indexer.Block.QitmeerCatchup.BoundIntervalSupervisor do
   end
 
   def handle_info(
-        {ref, %{}},
+        {ref, {:ok, %Indexer.Block.QitmeerCatchup.Fetcher{}}},
         %__MODULE__{
           bound_interval: bound_interval,
           task: %Task{ref: ref}
@@ -203,19 +201,14 @@ defmodule Indexer.Block.QitmeerCatchup.BoundIntervalSupervisor do
       ) do
     Process.demonitor(ref, [:flush])
 
-    interval = bound_interval
-
-    Logger.info(fn ->
-      ["Checking if index needs to catch up in ", to_string(interval), "ms."]
-    end)
-
+    interval = bound_interval.current
     Process.send_after(self(), :catchup_index, interval)
 
     {:noreply, %__MODULE__{state | task: nil}}
   end
 
   def handle_info(
-        {ref, %{}},
+        {ref, :ok},
         %__MODULE__{
           task: %Task{ref: ref}
         } = state

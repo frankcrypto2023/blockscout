@@ -4,7 +4,7 @@ defmodule EthereumJSONRPC.QitmeerBlock.StateRoot do
   """
 
   def request(%{id: id}) do
-    EthereumJSONRPC.request(%{id: id, method: "qng_getStateRoot", params: [-1,true]})
+    EthereumJSONRPC.request(%{id: id, method: "qng_getStateRoot", params: [-1, true]})
   end
 
   def number_from_result({:ok, %{"EVMHeight" => quantity}}) do

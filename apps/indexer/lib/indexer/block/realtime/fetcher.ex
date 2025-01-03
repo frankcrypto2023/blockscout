@@ -22,7 +22,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
       async_import_token_instances: 1,
       async_import_uncles: 1,
       fetch_and_import_range: 2,
-      qng_fetch_and_import_range: 2
+      qng_fetch_and_import_range: 3
     ]
 
   alias Ecto.Changeset
@@ -105,6 +105,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
         } = state
       ) do
     number = quantity_to_integer(quantity)
+
     if number > 0 do
       Publisher.broadcast([{:last_block_number, number}], :realtime)
     end
@@ -134,7 +135,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
         } = state
       ) do
     new_previous_number =
-      case EthereumJSONRPC.fetch_block_number_by_statroot(json_rpc_named_arguments) do
+      case EthereumJSONRPC.fetch_block_number_by_stateroot(json_rpc_named_arguments) do
         {:ok, number} when is_nil(previous_number) or number != previous_number ->
           if abnormal_gap?(number, previous_number) do
             new_number = max(number, previous_number)
@@ -150,7 +151,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
       end
 
     new_qitmeer_previous_number =
-      case EthereumJSONRPC.fetch_block_by_tag("latest",json_rpc_named_arguments) do
+      case EthereumJSONRPC.qng_fetch_latest_block_number(json_rpc_named_arguments) do
         {:ok, number} when is_nil(qitmeer_previous_number) or number != qitmeer_previous_number ->
           if abnormal_gap?(number, qitmeer_previous_number) do
             new_number = max(number, qitmeer_previous_number)
@@ -446,7 +447,7 @@ defmodule Indexer.Block.Realtime.Fetcher do
   defp qng_do_fetch_and_import_block(block_number_to_fetch, block_fetcher, _retry) do
     # time_before = Timex.now()
 
-    :timer.tc(fn -> qng_fetch_and_import_range(block_fetcher, block_number_to_fetch..block_number_to_fetch) end)
+    :timer.tc(fn -> qng_fetch_and_import_range(block_fetcher, block_number_to_fetch..block_number_to_fetch, false) end)
 
     # Prometheus.Instrumenter.block_full_process(fetch_duration, __MODULE__)
     # Logger.debug("record Fetched Failed and retry.")

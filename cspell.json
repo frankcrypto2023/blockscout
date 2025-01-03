@@ -16,6 +16,7 @@
     "txsvalid",
     "stateroot",
     "EVMHeight",
+    "dbmax",
     "accs",
     "actb",
     "addedfile",
