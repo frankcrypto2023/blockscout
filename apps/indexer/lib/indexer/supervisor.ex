@@ -12,6 +12,7 @@ defmodule Indexer.Supervisor do
   }
 
   alias Indexer.Block.Catchup, as: BlockCatchup
+  alias Indexer.Block.QitmeerCatchup, as: BlockQitmeerCatchup
   alias Indexer.Block.Realtime, as: BlockRealtime
   alias Indexer.Fetcher.TokenInstance.Realtime, as: TokenInstanceRealtime
   alias Indexer.Fetcher.TokenInstance.Retry, as: TokenInstanceRetry
@@ -147,6 +148,11 @@ defmodule Indexer.Supervisor do
            %{block_fetcher: block_fetcher, block_interval: block_interval, memory_monitor: memory_monitor},
            [name: BlockCatchup.Supervisor]
          ]},
+        # {BlockQitmeerCatchup.Supervisor,
+        #  [
+        #    %{block_fetcher: block_fetcher, block_interval: block_interval, memory_monitor: memory_monitor},
+        #    [name: BlockQitmeerCatchup.Supervisor]
+        #  ]},
         {Withdrawal.Supervisor, [[json_rpc_named_arguments: json_rpc_named_arguments]]}
       ]
       |> List.flatten()

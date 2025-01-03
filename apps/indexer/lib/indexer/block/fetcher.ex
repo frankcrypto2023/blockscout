@@ -10,10 +10,9 @@ defmodule Indexer.Block.Fetcher do
   import EthereumJSONRPC, only: [quantity_to_integer: 1]
   import Explorer.Chain.QitmeerBlock, only: [insert_block: 1]
   import Explorer.Chain.QitmeerTransaction, only: [insert_tx: 1, qitmeer_tx_update_status: 3]
-  import Explorer.Chain.QitmeerAddress, only: [qitmeer_address_update: 2]
   alias EthereumJSONRPC.{Blocks, FetchedBeneficiaries}
   alias Explorer.Chain
-  alias Explorer.Chain.{Address, Block, Hash, Import, QitmeerBlock, QitmeerTransaction, Transaction, Wei}
+  alias Explorer.Chain.{Address, Block, Hash, Import, Transaction, Wei}
   alias Explorer.Chain.Block.Reward
   alias Explorer.Chain.Cache.Blocks, as: BlocksCache
   alias Explorer.Chain.Cache.{Accounts, BlockNumber, Transactions, Uncles}
@@ -275,7 +274,6 @@ defmodule Indexer.Block.Fetcher do
           tx_data["vin"]
           |> Enum.map_join(",", &process_vin(&1, tx_data))
 
-        # qitmeer_address_update(addr, out_index["amount"])
         %{
           block_order: block_order,
           block_hash: block_hash,
@@ -330,12 +328,12 @@ defmodule Indexer.Block.Fetcher do
   def qng_fetch_and_import_range(
         %__MODULE__{
           broadcast: _broadcast,
-          callback_module: callback_module,
+          callback_module: _callback_module,
           json_rpc_named_arguments: json_rpc_named_arguments
-        } = state,
+        },
         _.._ = range
       ) do
-    {fetch_time, fetched_blocks} =
+    {_, fetched_blocks} =
       :timer.tc(fn -> EthereumJSONRPC.qng_fetch_blocks_by_range(range, json_rpc_named_arguments) end)
 
     case fetched_blocks do

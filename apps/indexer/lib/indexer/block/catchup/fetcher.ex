@@ -18,11 +18,9 @@ defmodule Indexer.Block.Catchup.Fetcher do
       async_import_token_balances: 1,
       async_import_token_instances: 1,
       async_import_uncles: 1,
-      fetch_and_import_range: 2,
-      qng_fetch_and_import_range: 2
+      fetch_and_import_range: 2
     ]
 
-  import Explorer.Chain.QitmeerBlock, only: [fetch_min_max: 0]
   alias Ecto.Changeset
   alias Explorer.Chain
   alias Explorer.Utility.MissingRangesManipulator
@@ -186,21 +184,13 @@ defmodule Indexer.Block.Catchup.Fetcher do
               tracer: Tracer
             )
   defp fetch_and_import_range_from_sequence(
-         %__MODULE__{block_fetcher: %Block.Fetcher{} = block_fetcher} = state,
+         %__MODULE__{block_fetcher: %Block.Fetcher{} = block_fetcher},
          first..last = range,
          sequence
        ) do
     Logger.metadata(fetcher: :block_catchup, first_block_number: first, last_block_number: last)
     Process.flag(:trap_exit, true)
     {fetch_duration, result} = :timer.tc(fn -> fetch_and_import_range(block_fetcher, range) end)
-    # case fetch_min_max() do
-    #   %{min: min, max: max} ->
-    #   max = min - 1
-    #   min = 0
-    #   range = min..max
-    #   Logger.info(fn -> "Qitmeer BLocks Fetching range #{inspect(range)}" end, fetcher: :block_catchup)
-    #   :timer.tc(fn -> qng_fetch_and_import_range_from_sequence(state,range) end)
-    # end
 
     Prometheus.Instrumenter.block_full_process(fetch_duration, __MODULE__)
 
@@ -256,20 +246,6 @@ defmodule Indexer.Block.Catchup.Fetcher do
     exception ->
       Logger.error(fn -> [Exception.format(:error, exception, __STACKTRACE__), ?\n, ?\n, "Retrying."] end)
       {:error, exception}
-  end
-
-  defp qng_fetch_and_import_range_from_sequence(
-         %__MODULE__{block_fetcher: %Block.Fetcher{} = block_fetcher},
-         range
-       ) do
-    case fetch_min_max() do
-      %{min: min, max: max} ->
-        max = min - 1
-        min = min - 11
-        range = min..max
-        Logger.info(fn -> "Qitmeer BLocks Fetching range #{inspect(range)}" end, fetcher: :block_catchup)
-        qng_fetch_and_import_range(block_fetcher, range)
-    end
   end
 
   defp cap_seq(seq, errors) do

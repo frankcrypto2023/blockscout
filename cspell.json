@@ -14,6 +14,8 @@
     "txid",
     "locktime",
     "txsvalid",
+    "stateroot",
+    "EVMHeight",
     "accs",
     "actb",
     "addedfile",
